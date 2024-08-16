@@ -78,6 +78,7 @@
     justify-content: center;
     align-items: center;
     height: 100vh; /* This ensures the container takes up the full viewport height */
+    z-index: 10000;
   }
 
   #login {
