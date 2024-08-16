@@ -105,7 +105,7 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch('http://127.0.0.1:16004/courier/all', {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/all`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -121,7 +121,7 @@ export default {
     },
     async createCourier() {
       try {
-        const response = await fetch('http://127.0.0.1:16004/courier/new', {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newCourier)
@@ -143,7 +143,7 @@ export default {
     },
     async updateCourier() {
       try {
-        const response = await fetch(`http://127.0.0.1:16004/courier/${this.currentCourier._id}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/${this.currentCourier._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({
@@ -170,7 +170,7 @@ export default {
     },
     async deleteCourier() {
       try {
-        const response = await fetch(`http://127.0.0.1:16004/courier/${this.currentCourier.phone_num}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/${this.currentCourier.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });

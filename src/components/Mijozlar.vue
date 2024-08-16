@@ -119,10 +119,10 @@ export default {
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch('http://127.0.0.1:16004/buyer/all', {
+          fetch(`${process.env.VUE_APP_API_1_URL}/buyer/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch('http://127.0.0.1:16004/buyer/activity/today/all', {
+          fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/today/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);
@@ -147,7 +147,7 @@ export default {
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch('http://127.0.0.1:16005/data/prices', {
+        const response = await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         this.defaultPrices = await response.json();
@@ -157,7 +157,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const response = await fetch(`http://127.0.0.1:16004/buyer/${this.currentBuyer._id}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({
@@ -184,7 +184,7 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://127.0.0.1:16004/buyer/activity/${buyer.activityId}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/${buyer.activityId}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -213,7 +213,7 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch('http://127.0.0.1:16004/buyer/new', {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newBuyer)
@@ -237,7 +237,7 @@ export default {
     async updateBuyer() {
       try {
         // Update buyer information
-        const buyerResponse = await fetch(`http://127.0.0.1:16004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -255,7 +255,7 @@ export default {
 
         // Update buyer activity
         if (this.currentBuyer.activityId) {
-          const activityResponse = await fetch(`http://127.0.0.1:16004/buyer/activity/${this.currentBuyer.activityId}`, {
+          const activityResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/${this.currentBuyer.activityId}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json', 
@@ -272,7 +272,7 @@ export default {
           }
         } else {
           // If there's no activity, create a new one
-          const newActivityResponse = await fetch('http://127.0.0.1:16004/buyer/activity/new', {
+          const newActivityResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/new`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json', 
@@ -306,7 +306,7 @@ export default {
     },
     async deleteBuyer() {
       try {
-        const response = await fetch(`http://127.0.0.1:16004/buyer/${this.currentBuyer.phone_num}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });

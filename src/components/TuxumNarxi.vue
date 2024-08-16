@@ -32,7 +32,7 @@
     methods: {
       async loadPrices() {
         try {
-          const response = await fetch('http://127.0.0.1:16005/data/prices', {
+          const response = await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           });
@@ -44,7 +44,7 @@
       },
       async savePrices() {
         try {
-          await fetch('http://127.0.0.1:16005/data/prices', {
+          await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
             body: JSON.stringify(this.localPrices),
