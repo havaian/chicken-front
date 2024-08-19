@@ -43,7 +43,7 @@
       },
       async login() {
         try {
-          const response = await fetch(`${process.env.VUE_APP_API_2_URL}/data/login`, {
+          const response = await fetch(`http://141.98.153.217:16005/data/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: this.username, password: this.password }),
@@ -67,6 +67,9 @@
         const isLoggedIn = this.getCookie('isLoggedIn');
         const storedUsername = localStorage.getItem('username');
         this.isLoggedIn = (isLoggedIn === 'true' || storedUsername);
+        if (!isLoggedIn) {
+          localStorage.removeItem('username');
+        }
       },
     },
   };
@@ -77,16 +80,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* This ensures the container takes up the full viewport height */
-    z-index: 10000;
+    height: 100vh;
+    z-index: 100000 !important;
+    oveflow: hidden !important;
   }
 
   #login {
-    background: #fff;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    border: thin solid black;
     width: 300px;
   }
   
@@ -108,6 +111,7 @@
     background-color: #007bff;
     color: #fff;
     border: none;
+    margin-top: 5%;
     padding: 10px 20px;
     border-radius: 4px;
     cursor: pointer;

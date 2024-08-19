@@ -21,8 +21,8 @@
             <p>{{ courier.full_name }}</p>
             <p>{{ courier.phone_num }}</p>
             <p>{{ courier.car_num || "-" }}</p>
-            <button @click="openEditModal(courier)">Tahrirlash</button>
-            <button @click="confirmDeleteCourier(courier)">O‘chirish</button>
+            <button class="edit-button" @click="openEditModal(courier)">Tahrirlash</button>
+            <button class="delete-button" @click="confirmDeleteCourier(courier)">O‘chirish</button>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/all`, {
+        const response = await fetch(`http://141.98.153.217:16004/courier/all`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -121,7 +121,7 @@ export default {
     },
     async createCourier() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/new`, {
+        const response = await fetch(`http://141.98.153.217:16004/courier/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newCourier)
@@ -143,7 +143,7 @@ export default {
     },
     async updateCourier() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/${this.currentCourier._id}`, {
+        const response = await fetch(`http://141.98.153.217:16004/courier/${this.currentCourier._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({
@@ -170,7 +170,7 @@ export default {
     },
     async deleteCourier() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/courier/${this.currentCourier.phone_num}`, {
+        const response = await fetch(`http://141.98.153.217:16004/courier/${this.currentCourier.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -223,7 +223,7 @@ export default {
   }
 
   #content h2 {
-    color: #fff;
+    color: #000;
   }
 
   .top-div {
@@ -256,10 +256,9 @@ export default {
   
   #courierList div {
     padding: 1% 15%;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
+    background-color: #fff;
+    border: 1px solid #aaa;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: inline-grid;
     gap: 5%;
     grid-template-columns: repeat(5, 1fr);
@@ -273,8 +272,6 @@ export default {
   }
   
   button {
-    background-color: #007bff;
-    color: #ffffff;
     border: none;
     padding: 12px 0;
     border-radius: 6px;
@@ -286,6 +283,24 @@ export default {
   
   button:hover {
     background-color: #0056b3;
+  }
+
+  .edit-button {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .edit-button:hover {
+    background-color: #0056b3;
+  }
+
+  .delete-button {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .delete-button:hover {
+    background-color: #c82333;
   }
   
   .modal {
@@ -303,13 +318,12 @@ export default {
   }
   
   .modal-content {
-    background-color: #ffffff;
+    background-color: #fff;
     padding: 20px;
     border: 1px solid #ddd;
     width: 50%;
     max-width: 500px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .modal-content button {

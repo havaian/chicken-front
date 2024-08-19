@@ -1,6 +1,8 @@
 <template>
     <div id="tuxum-narxi">
-      <h2>Tuxum Narxi</h2>
+      <div class="top-div">
+        <h2>Tuxum Narxi</h2>
+      </div>
       <div id="content">
         <div id="prices" v-if="prices">
           <div v-for="(value, key) in prices" :key="key">
@@ -32,7 +34,7 @@
     methods: {
       async loadPrices() {
         try {
-          const response = await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
+          const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           });
@@ -44,7 +46,7 @@
       },
       async savePrices() {
         try {
-          await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
+          await fetch(`http://141.98.153.217:16005/data/prices`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
             body: JSON.stringify(this.localPrices),
@@ -69,12 +71,18 @@
 #content {
   border-radius: 8px;
   padding: 40px;
+  padding-top: 20px;
   background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.top-div {
+  width: 100%;
+  color: #000;
+  display: inline-flex;
+  justify-content: space-between;
 }
 
 h2 {
-  color: #007bff;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -114,8 +122,9 @@ input[type="number"] {
   
 button {
   background-color: #007bff;
-  color: #ffffff;
+  color: #fff;
   border: none;
+  margin: 0.5%;
   padding: 12px 0;
   border-radius: 6px;
   cursor: pointer;

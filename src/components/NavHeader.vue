@@ -2,9 +2,9 @@
 <template>
     <div class="nav">
       <nav>
-        <router-link to="/tuxum">Tuxum narxi</router-link>
-        <router-link to="/mijozlar">Mijozlar</router-link>
-        <router-link to="/kuryerlar">Kuryerlar</router-link>
+        <router-link to="/tuxum" :class="{ active: isActive('/tuxum') }">Tuxum narxi</router-link>
+        <router-link to="/mijozlar" :class="{ active: isActive('/mijozlar') }">Mijozlar</router-link>
+        <router-link to="/kuryerlar" :class="{ active: isActive('/kuryerlar') }">Kuryerlar</router-link>
       </nav>
   
       <header>
@@ -17,52 +17,60 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        username: 'Username Placeholder'
-      };
-    },
-    methods: {
-      logout() {
-        // Handle logout logic here
-        console.log('User logged out');
-        localStorage.removeItem('username');
-      
-        // Remove isLoggedIn cookie
-        document.cookie = 'isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        
-        this.$router.push('/login'); // Redirect to login or home page
-      }
-    },
-    mounted() {
-      this.username = localStorage.getItem('username') || 'Username Placeholder';
-    }
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+export default {
+  setup() {
+    const username = ref('Username Placeholder');
+    const route = useRoute();
+    const router = useRouter();
+
+    const isActive = (path) => {
+      return route.path === path;
+    };
+
+    const logout = () => {
+      console.log('User logged out');
+      localStorage.removeItem('username');
+      document.cookie = 'isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      router.push('/login');
+    };
+
+    onMounted(() => {
+      username.value = localStorage.getItem('username') || 'Username Placeholder';
+    });
+
+    return {
+      username,
+      logout,
+      isActive
+    };
   }
+};
 </script>
 
 <style scoped>
   .nav {
     width: 220px;
     height: 100%;
-    background: #ffffff;
+    background: #fff;
     position: fixed;
     top: 0;
     left: 0;
-    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    border-right: thin solid #aaa;
     padding-top: 20px;
     z-index: 1000;
   }
   
   header {
     background: #4a4a4a;
-    color: #ffffff;
+    color: #fff;
     padding: 12px 20px;
     height: 8vh;
     left: 0;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     position: relative;
   }
   
@@ -78,7 +86,7 @@
   
   #logout {
     background-color: #ff6f6f;
-    color: #ffffff;
+    color: #fff;
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
@@ -102,14 +110,21 @@
     padding: 12px;
     margin-bottom: 12px;
     text-decoration: none;
-    color: #555;
+    color: #000;
     border-radius: 6px;
-    transition: background-color 0.3s, color 0.3s;
+    border: 3px solid transparent;
+    transition: border 0.3s, color 0.3s;
   }
   
   nav a:hover {
-    background-color: #007bff;
-    color: #ffffff;
+    border: 3px solid #007bff;
+    transition: border 0.3s, color 0.3s;
+  }
+  
+  nav a.active {
+    border: 3px solid #007bff;
+    background: #007bff;
+    color: #fff;
   }
 </style>
   

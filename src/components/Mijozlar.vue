@@ -3,14 +3,43 @@
     <div id="content">
       <div class="top-div">
         <h2>Mijozlar</h2>
+        <div class="debt-info">
+          <span>Umumiy qarz: </span>
+          <span :class="{ 'positive-debt': totalDebt < 0, 'negative-debt': totalDebt > 0 }">
+            {{ totalDebt.toLocaleString() }} so'm
+          </span>
+        </div>
         <button @click="openCreateModal">Mijoz Qo'shish</button>
       </div>
 
+      <div class="debt-limit-row">
+        <span>Qarz Chegarasi:</span>
+        <input 
+          type="number" 
+          v-model.number="debtLimit" 
+          @change="updateDebtLimit"
+          :disabled="updatingDebtLimit"
+        >
+        <span>so'm</span>
+      </div>
+
       <div id="buyerListContainer">
-        <input id="searchBuyer" type="text" v-model="searchQuery" placeholder="Ism yoki telefon raqami bo'yicha qidirish" />
+        <div class="filter-options">
+          <label v-for="option in filterOptions" :key="option.value">
+            <input type="checkbox" v-model="selectedFilters" :value="option.value">
+            {{ option.label }}
+          </label>
+        </div>
+        <input 
+          id="searchBuyer" 
+          type="text" 
+          v-model="searchQuery" 
+          :placeholder="getPlaceholder()" 
+        />
 
         <div id="buyerList">
           <div v-for="buyer in filteredBuyers" :key="buyer._id" :class="{'buyer-item': buyer.debt < 0, 'buyer-item debt': buyer.debt > 0}">
+            <span class="deactivation-status">{{ buyer.deactivated ? '❌' : '✅' }}</span>
             <p class="buyer-name">{{ buyer.full_name }}</p>
             <p class="buyer-phone">{{ buyer.phone_num }}</p>
             <div class="price-grid">
@@ -19,9 +48,10 @@
                 <span class="price-value">{{ price }}</span>
               </div>
             </div>
-            <p class="buyer-debt" :class="{ 'positive-debt': buyer.debt < 0, 'negative-debt': buyer.debt > 0 }">
-              Qarz: {{ buyer.debt }}
-            </p>
+            <div class="buyer-debt" :class="{ 'positive-debt': buyer.debt < 0, 'negative-debt': buyer.debt > 0 }">
+              <span class="debt-label">Qarz:</span>
+              <span class="debt-value">{{ buyer.debt.toLocaleString() }} so'm</span>
+            </div>
             <div class="button-grid">
               <button @click="openEditModal(buyer)" class="edit-button">Tahrirlash</button>
               <button @click="confirmDeleteBuyer(buyer)" class="delete-button">O'chirish</button>
@@ -64,7 +94,56 @@
             <label for="debt">Qarz</label>
             <input id="debt" v-model.number="currentBuyer.debt" type="number" placeholder="Qarz" />
           </div>
+          <div class="debt-limit-input">
+            <label for="individualDebtLimit">Shaxsiy Qarz Chegarasi</label>
+            <input id="individualDebtLimit" v-model.number="currentBuyer.debt_limit" type="number" placeholder="Shaxsiy Qarz Chegarasi" />
+          </div>
+          <div class="deactivate-option">
+            <label>
+              Deactivate
+            </label>
+            <input type="checkbox" v-model="currentBuyer.deactivated">
+          </div>
           <button @click="confirmUpdateBuyer">Saqlash</button>
+
+          <!-- Last 30 Days Activities Table -->
+          <div class="activities-table" v-if="lastThirtyDaysActivities.length > 0">
+            <h4>So'nggi 30 kunlik faoliyat</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>Sana</th>
+                  <th>Qabul qilingan</th>
+                  <th>To'lov</th>
+                  <th>Qarz</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="activity in lastThirtyDaysActivities" :key="activity._id">
+                  <td>{{ formatDate(activity.date) }}</td>
+                  <td>
+                    <div v-for="accepted in activity.accepted" :key="accepted.time">
+                      <div class="price-grid">
+                        <div v-for="egg in accepted.eggs" :key="egg.category" class="price-item edit-modal">
+                          <span class="price-category edit-modal">{{ egg.category }}</span>
+                          <span class="price-value edit-modal">{{ egg.amount }}</span>
+                          <span class="egg-price edit-modal">({{ egg.price }} so'm)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div v-for="accepted in activity.accepted" :key="accepted.payment">
+                      <div>
+                        <span>{{ accepted.payment.toLocaleString() }} so'm</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ activity.debt.toLocaleString() }} so'm</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -99,30 +178,70 @@ export default {
         phone_num: '',
         price: {},
         debt: 0,
-        activityId: null
+        activityId: null,
+        deactivated: false,
+        individualDebtLimit: 0 
       },
       confirmationMessage: '',
       pendingAction: null,
-      defaultPrices: {}
+      defaultPrices: {},
+      filterOptions: [
+        { value: 'name', label: 'Ism' },
+        { value: 'phone', label: 'Telefon raqami' },
+        { value: 'price', label: 'Tuxum narxi' },
+        { value: 'debt', label: 'Qarz' }
+      ],
+      selectedFilters: ['name', 'phone'], // Default selections
+      lastThirtyDaysActivities: [],
+      debtLimit: 0,
+      updatingDebtLimit: false,
     };
   },
   computed: {
+    totalDebt() {
+      return this.buyers.reduce((sum, buyer) => sum + buyer.debt, 0);
+    },
     filteredBuyers() {
-      const query = this.searchQuery.toLowerCase();
-      return this.buyers.filter(buyer =>
-        buyer.full_name.toLowerCase().includes(query) ||
-        buyer.phone_num.includes(query)
-      );
-    }
+      const query = this.searchQuery.toLowerCase().trim();
+      
+      if (!query) {
+        return this.buyers; // Return all buyers if the search query is empty
+      }
+
+      return this.buyers.filter(buyer => {
+        if (this.selectedFilters.includes('name') && (buyer.full_name || '').toLowerCase().includes(query)) {
+          return true;
+        }
+        if (this.selectedFilters.includes('phone') && (buyer.phone_num || '').toLowerCase().includes(query)) {
+          return true;
+        }
+        if (this.selectedFilters.includes('price') && Object.values(buyer.price || {}).some(price => 
+          price.toString().includes(query)
+        )) {
+          return true;
+        }
+        if (this.selectedFilters.includes('debt') && buyer.debt.toString().includes(query)) {
+          return true;
+        }
+        return false;
+      });
+    },
   },
   methods: {
+    getPlaceholder() {
+      const selectedLabels = this.filterOptions
+        .filter(option => this.selectedFilters.includes(option.value))
+        .map(option => option.label)
+        .join(', ');
+      return `${selectedLabels} bo'yicha qidirish`;
+    },
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch(`${process.env.VUE_APP_API_1_URL}/buyer/all`, {
+          fetch(`http://141.98.153.217:16004/buyer/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/today/all`, {
+          fetch(`http://141.98.153.217:16004/buyer/activity/today/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);
@@ -147,7 +266,7 @@ export default {
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_2_URL}/data/prices`, {
+        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         this.defaultPrices = await response.json();
@@ -157,20 +276,22 @@ export default {
     },
     async updateBuyer() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer._id}`, {
+        console.log(this.currentBuyer);
+        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({
             full_name: this.currentBuyer.full_name,
-            phone_num: this.currentBuyer.phone_num
+            phone_num: this.currentBuyer.phone_num,
+            deactivated: this.currentBuyer.deactivated
           })
         });
 
         if (response.ok) {
           // Update buyer info
-          await this.updateBuyerActivity(this.currentBuyer);
-          this.showEditModal = false;
-          this.loadBuyers();
+          // await this.updateBuyerActivity(this.currentBuyer);
+          // this.showEditModal = false;
+          // this.loadBuyers();
         } else {
           alert('Tahrirlashda xatolik!');
         }
@@ -184,7 +305,7 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/${buyer.activityId}`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/${buyer.activityId}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -213,7 +334,7 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/new`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newBuyer)
@@ -236,8 +357,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        // Update buyer information
-        const buyerResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -245,7 +365,9 @@ export default {
           },
           body: JSON.stringify({
             full_name: this.currentBuyer.full_name,
-            phone_num: this.currentBuyer.phone_num
+            phone_num: this.currentBuyer.phone_num,
+            deactivated: this.currentBuyer.deactivated,
+            debt_limit: this.currentBuyer.individualDebtLimit
           })
         });
 
@@ -255,7 +377,7 @@ export default {
 
         // Update buyer activity
         if (this.currentBuyer.activityId) {
-          const activityResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/${this.currentBuyer.activityId}`, {
+          const activityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/${this.currentBuyer.activityId}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json', 
@@ -272,7 +394,7 @@ export default {
           }
         } else {
           // If there's no activity, create a new one
-          const newActivityResponse = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/activity/new`, {
+          const newActivityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/new`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json', 
@@ -292,7 +414,7 @@ export default {
 
         this.showEditModal = false;
         await this.loadBuyers(); // Reload the buyers list to reflect the changes
-        alert('Ma‘lumotlar muvaffaqiyatli yangilandi');
+        alert("Ma'lumotlar muvaffaqiyatli yangilandi");
       } catch (error) {
         console.error('Error updating buyer:', error);
         alert('Tahrirlashda xatolik: ' + error.message);
@@ -306,7 +428,7 @@ export default {
     },
     async deleteBuyer() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_API_1_URL}/buyer/${this.currentBuyer.phone_num}`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -337,17 +459,82 @@ export default {
     closeCreateModal() {
       this.showCreateModal = false;
     },
-    openEditModal(buyer) {
-      this.currentBuyer = { ...buyer };
+    async openEditModal(buyer) {
+      this.currentBuyer = { 
+        ...buyer,
+        deactivated: buyer.deactivated,
+        individualDebtLimit: buyer.individualDebtLimit || this.debtLimit
+      };
       this.showEditModal = true;
+      await this.fetchLastThirtyDaysActivities();
+    },
+    async fetchLastThirtyDaysActivities() {
+      try {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/last30days/${this.currentBuyer._id}`, {
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
+        });
+        if (response.ok) {
+          this.lastThirtyDaysActivities = await response.json();
+        } else {
+          console.error('Failed to fetch last 30 days activities');
+        }
+      } catch (error) {
+        console.error('Error fetching last 30 days activities:', error);
+      }
+    },
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
     },
     closeEditModal() {
       this.showEditModal = false;
-    }
+    },
+    async fetchDebtLimit() {
+      try {
+        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          this.debtLimit = data.debtLimit;
+        } else {
+          console.error('Failed to fetch debt limit');
+        }
+      } catch (error) {
+        console.error('Error fetching debt limit:', error);
+      }
+    },
+    async updateDebtLimit() {
+      this.updatingDebtLimit = true;
+      try {
+        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-user-website': localStorage.getItem('username') 
+          },
+          body: JSON.stringify({ debtLimit: this.debtLimit })
+        });
+        if (response.ok) {
+          console.log('Debt limit updated successfully');
+        } else {
+          console.error('Failed to update debt limit');
+          // Revert to the previous value if update fails
+          await this.fetchDebtLimit();
+        }
+      } catch (error) {
+        console.error('Error updating debt limit:', error);
+        // Revert to the previous value if update fails
+        await this.fetchDebtLimit();
+      } finally {
+        this.updatingDebtLimit = false;
+      }
+    },
   },
   async mounted() {
     await this.loadDefaultPrices();
     await this.loadBuyers();
+    await this.fetchDebtLimit();
   }
 };
 </script>
@@ -360,7 +547,7 @@ export default {
   }
 
   #content h2 {
-    color: #fff;
+    color: #000;
   }
 
   .top-div {
@@ -368,6 +555,23 @@ export default {
     display: inline-flex;
     justify-content: space-between;
   }
+
+  .top-div {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .debt-info {
+    color: #000;
+    font-size: 18px;
+    display: inline-flex;
+    gap: 25px;
+  }
+
+  .positive-debt { color: #28a745; font-weight: 700; }
+  .negative-debt { color: #dc3545; font-weight: 700; }
   
   #buyerListContainer {
     margin: 3% 0;
@@ -391,10 +595,9 @@ export default {
     gap: 12px;
   }
   .buyer-item {
-    background-color: #ffffff;
+    background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 15px;
   }
 
@@ -428,6 +631,7 @@ export default {
   }
 
   .price-category {
+    font-weight: bold;
     font-size: 0.8em;
     color: #555;
   }
@@ -436,14 +640,32 @@ export default {
     font-weight: bold;
   }
 
-  .buyer-debt {
-    font-weight: bold;
-    margin: 10px 0;
-    text-align: right;
+  .price-value.edit-modal, {
+    font-weight: normal;
   }
 
-  .positive-debt { color: #28a745; }
-  .negative-debt { color: #dc3545; }
+  .egg-price {
+    font-size: 0.8em;
+    color: #555;
+  }
+
+  .buyer-debt {
+    display: grid;
+    padding-bottom: 1.2vh;
+  }
+
+  .debt-label {
+    font-size: 0.9em;
+    color: #555;
+  }
+
+  .debt-value {
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  .positive-debt .debt-value { color: #28a745; }
+  .negative-debt .debt-value { color: #dc3545; }
 
   .button-grid {
     display: grid;
@@ -509,13 +731,12 @@ export default {
   
   #buyerList > div {
     padding: 1% 15%;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
+    background-color: #fff;
+    border: 1px solid #aaa;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: inline-grid;
     gap: 5%;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -527,7 +748,7 @@ export default {
   
   button {
     background-color: #007bff;
-    color: #ffffff;
+    color: #fff;
     border: none;
     padding: 12px 0;
     border-radius: 6px;
@@ -556,13 +777,12 @@ export default {
   }
   
   .modal-content {
-    background-color: #ffffff;
+    background-color: #fff;
     padding: 20px;
     border: 1px solid #ddd;
     width: 50%;
     max-width: 500px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   }
 
   .modal-content button {
@@ -596,6 +816,83 @@ export default {
     color: #000;
     text-decoration: none;
     cursor: pointer;
+  }
+
+  .filter-options {
+    margin-bottom: 10px;
+  }
+
+  .filter-options label {
+    margin-right: 15px;
+    cursor: pointer;
+  }
+
+  .filter-options input[type="checkbox"] {
+    margin-right: 5px;
+  }
+
+  .activities-table {
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .activities-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .activities-table th, .activities-table td {
+    padding: 8px;
+    text-align: left;
+  }
+
+  .activities-table th {
+    background-color: #f2f2f2;
+  }
+
+  .activities-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .deactivation-status {
+    margin-right: 10px;
+    font-size: 1.2em;
+  }
+
+  .deactivate-option {
+    width: 100%;
+    display: inline-flex;
+    margin-bottom: 1vh;
+  }
+
+  .deactivate-option label {
+    display: flex;
+    align-items: center;
+  }
+
+  .deactivate-option input[type="checkbox"] {
+    width: fit-content !important;
+    margin: 10px !important;
+  }
+
+  .debt-limit-row {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .debt-limit-row span {
+    margin-right: 10px;
+  }
+
+  .debt-limit-row input {
+    width: 150px;
+    padding: 5px;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
   }
 </style>
   

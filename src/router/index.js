@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '@/components/Login.vue';
+import Login from '../components/Login.vue';
 import CourierList from '../components/CourierList.vue';
-import Mijozlar from '@/components/Mijozlar.vue';
-import TuxumNarxi from '@/components/TuxumNarxi.vue';
+import Mijozlar from '../components/Mijozlar.vue';
+import TuxumNarxi from '../components/TuxumNarxi.vue';
 
 const routes = [
   {

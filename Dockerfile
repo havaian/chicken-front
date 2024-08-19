@@ -1,42 +1,46 @@
-# Use an official Node.js runtime as a parent image for building the Vue project
-FROM node:18-alpine AS build-stage
+# # it's a good idea to pin this, but for demo purposes we'll leave it as is
+# FROM node:latest as builder
 
-# Set the working directory in the container
+# # automatically creates the dir and sets it as the current working dir
+# WORKDIR /usr/src/app
+# # this will allow us to run vite and other tools directly
+# ENV PATH /usr/src/node_modules/.bin:$PATH
+
+# # inject all environment vars we'll need
+# ARG VITE_API_1_URL
+# # expose the variable to the finished cotainer
+# ENV VITE_API_1_URL=$VITE_API_1_URL
+
+# COPY package.json ./
+
+# RUN npm install
+
+# # use a more specific COPY, as this will include files like `Dockerfile`, we don't really need inside our containers.
+# COPY . ./
+
+# FROM builder as dev
+# CMD ["npm", "run", "dev"]
+
+# FROM builder as prod-builder
+# RUN npm run build
+
+# # it's a good idea to pin this, but for demo purposes we'll leave it as is
+# FROM nginx:latest as prod
+
+# COPY --from=prod-builder /usr/src/app/dist /usr/share/nginx/html
+
+# CMD ["nginx", "-g", "daemon off;"]
+
+FROM node:18
+
 WORKDIR /app
 
-# Copy the package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+RUN npm i
 
-# Copy the rest of the application source code
 COPY . .
 
-# Add build argument for API URL
-ARG BACK_API_1_URL
-ENV VUE_APP_API_1_URL=${BACK_API_1_URL}
-ARG BACK_API_2_URL
-ENV VUE_APP_API_2_URL=${BACK_API_2_URL}
-
-# Build the Vue.js project
-RUN npm run build
-
-# Use the official Nginx image as the base for serving the built files
-FROM nginx:latest AS production-stage
-
-# Copy custom Nginx configuration
-COPY ./nginx.conf /etc/nginx/nginx.conf
-
-# Copy the built files from the build-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-# Set proper permissions
-RUN chown -R www-data:www-data /usr/share/nginx/html
-RUN chmod -R 755 /usr/share/nginx/html
-
-# Expose port 80
 EXPOSE 80
 
-# Start Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["npm", "run", "dev", "--", "--host"]

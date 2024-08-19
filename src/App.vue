@@ -1,19 +1,33 @@
 <template>
   <div id="content-wrapper">
-    <NavHeader />
+    <NavHeader v-if="!isLoginRoute" />
     <div id="app-container">
       <router-view></router-view>
     </div>
-    </div>
+  </div>
 </template>
 
 <script>
-import NavHeader from './components/NavHeader.vue'; // Import the NavHeader component
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import NavHeader from './components/NavHeader.vue';
+
 export default {
   name: 'App',
   components: {
     NavHeader
   },
+  setup() {
+    const route = useRoute();
+    
+    const isLoginRoute = computed(() => {
+      return route.name === 'login' || route.path === '/login';
+    });
+
+    return {
+      isLoginRoute
+    };
+  }
 };
 </script>
 
@@ -29,5 +43,6 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+  background-color: #fff;
 }
 </style>
