@@ -72,7 +72,7 @@
       </div>
 
       <!-- Edit Buyer Modal -->
-      <div v-if="showEditModal" class="modal">
+      <div v-if="showEditModal" class="modal" @click.self="closeEditModal">
         <div class="modal-content">
           <span class="close" @click="closeEditModal">&times;</span>
           <h3>Mijozni Tahrirlash</h3>
@@ -96,7 +96,7 @@
           </div>
           <div class="debt-limit-input">
             <label for="individualDebtLimit">Shaxsiy Qarz Chegarasi</label>
-            <input id="individualDebtLimit" v-model.number="currentBuyer.debt_limit" type="number" placeholder="Shaxsiy Qarz Chegarasi" />
+            <input id="individualDebtLimit" v-model.number="currentBuyer.individualDebtLimit" type="number" placeholder="Shaxsiy Qarz Chegarasi" />
           </div>
           <div class="deactivate-option">
             <label>
@@ -256,7 +256,8 @@ export default {
             ...buyer,
             price: activity && Object.keys(activity.price).length > 0 ? activity.price : {...this.defaultPrices},
             debt: activity ? activity.debt : 0,
-            activityId: activity ? activity._id : null
+            activityId: activity ? activity._id : null,
+            individualDebtLimit: buyer.debt_limit // Add this line
           };
         });
 
@@ -276,22 +277,29 @@ export default {
     },
     async updateBuyer() {
       try {
-        console.log(this.currentBuyer);
-        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-user-website': localStorage.getItem('username')
+          },
           body: JSON.stringify({
             full_name: this.currentBuyer.full_name,
             phone_num: this.currentBuyer.phone_num,
-            deactivated: this.currentBuyer.deactivated
+            deactivated: this.currentBuyer.deactivated,
+            debt_limit: this.currentBuyer.individualDebtLimit
           })
         });
 
-        if (response.ok) {
+        if (!buyerResponse.ok) {
+          throw new Error('Failed to update buyer information');
+        }
+
+        if (buyerResponse.ok) {
           // Update buyer info
-          // await this.updateBuyerActivity(this.currentBuyer);
-          // this.showEditModal = false;
-          // this.loadBuyers();
+          await this.updateBuyerActivity(this.currentBuyer);
+          this.showEditModal = false;
+          this.loadBuyers();
         } else {
           alert('Tahrirlashda xatolik!');
         }
@@ -463,7 +471,7 @@ export default {
       this.currentBuyer = { 
         ...buyer,
         deactivated: buyer.deactivated,
-        individualDebtLimit: buyer.individualDebtLimit || this.debtLimit
+        individualDebtLimit: buyer.debt_limit !== undefined ? buyer.debt_limit : this.debtLimit
       };
       this.showEditModal = true;
       await this.fetchLastThirtyDaysActivities();
@@ -701,8 +709,34 @@ export default {
   }
 
   .modal-content {
-    max-width: 400px;
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
     width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .close {
+    color: #aaa;
+    position: sticky;
+    top: 0;
+    right: 10px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    float: right;
+    z-index: 1;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
   }
 
   .price-inputs {
@@ -801,21 +835,6 @@ export default {
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
-  }
-  
-  .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .close:hover,
-  .close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
   }
 
   .filter-options {
