@@ -6,7 +6,7 @@
         <div class="debt-info">
           <span>Umumiy qarz: </span>
           <span :class="{ 'positive-debt': totalDebt < 0, 'negative-debt': totalDebt > 0 }">
-            {{ totalDebt.toLocaleString() }} so'm
+            {{ totalDebt.toLocaleString() }}
           </span>
         </div>
         <button @click="openCreateModal">Mijoz Qo'shish</button>
@@ -20,7 +20,6 @@
           @change="updateDebtLimit"
           :disabled="updatingDebtLimit"
         >
-        <span>so'm</span>
       </div>
 
       <div id="buyerListContainer">
@@ -50,11 +49,17 @@
             </div>
             <div class="buyer-debt" :class="{ 'positive-debt': buyer.debt < 0, 'negative-debt': buyer.debt > 0 }">
               <span class="debt-label">Qarz:</span>
-              <span class="debt-value">{{ buyer.debt.toLocaleString() }} so'm</span>
+              <span class="debt-value">{{ buyer.debt.toLocaleString() }}</span>
             </div>
             <div class="button-grid">
               <button @click="openEditModal(buyer)" class="edit-button">Tahrirlash</button>
-              <button @click="confirmDeleteBuyer(buyer)" class="delete-button">O'chirish</button>
+              <button 
+                @click="confirmDeleteBuyer(buyer)" 
+                class="delete-button"
+                :title="buyer.debt > 0 ? 'Qarzi bo\'lgan mijozni o\'chirib bo\'lmaydi' : ''"
+              >
+                O'chirish
+              </button>
             </div>
           </div>
         </div>
@@ -127,7 +132,7 @@
                         <div v-for="egg in accepted.eggs" :key="egg.category" class="price-item edit-modal">
                           <span class="price-category edit-modal">{{ egg.category }}</span>
                           <span class="price-value edit-modal">{{ egg.amount }}</span>
-                          <span class="egg-price edit-modal">({{ egg.price }} so'm)</span>
+                          <span class="egg-price edit-modal">({{ egg.price }})</span>
                         </div>
                       </div>
                     </div>
@@ -135,11 +140,11 @@
                   <td>
                     <div v-for="accepted in activity.accepted" :key="accepted.payment">
                       <div>
-                        <span>{{ accepted.payment.toLocaleString() }} so'm</span>
+                        <span>{{ accepted.payment.toLocaleString() }}</span>
                       </div>
                     </div>
                   </td>
-                  <td>{{ activity.debt.toLocaleString() }} so'm</td>
+                  <td>{{ activity.debt.toLocaleString() }}</td>
                 </tr>
               </tbody>
             </table>
@@ -238,10 +243,10 @@ export default {
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:16004/buyer/all`, {
+          fetch(`http://141.98.153.217:26004/buyer/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch(`http://141.98.153.217:16004/buyer/activity/today/all`, {
+          fetch(`http://141.98.153.217:26004/buyer/activity/today/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);
@@ -267,7 +272,7 @@ export default {
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
+        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         this.defaultPrices = await response.json();
@@ -277,7 +282,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -313,7 +318,7 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/${buyer.activityId}`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/${buyer.activityId}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -342,7 +347,7 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/new`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newBuyer)
@@ -365,7 +370,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -385,7 +390,7 @@ export default {
 
         // Update buyer activity
         if (this.currentBuyer.activityId) {
-          const activityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/${this.currentBuyer.activityId}`, {
+          const activityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/${this.currentBuyer.activityId}`, {
             method: 'PUT',
             headers: { 
               'Content-Type': 'application/json', 
@@ -402,7 +407,7 @@ export default {
           }
         } else {
           // If there's no activity, create a new one
-          const newActivityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/new`, {
+          const newActivityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/new`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json', 
@@ -429,14 +434,22 @@ export default {
       }
     },
     confirmDeleteBuyer(buyer) {
+      if (buyer.debt > 0) {
+        alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
+        return;
+      }
       this.currentBuyer = buyer;
-      this.confirmationMessage = 'Mijozni o‘chirishni tasdiqlaysizmi?';
+      this.confirmationMessage = 'Mijozni o\'chirishni tasdiqlaysizmi?';
       this.pendingAction = this.deleteBuyer;
       this.showConfirmModal = true;
     },
     async deleteBuyer() {
+      if (this.currentBuyer.debt > 0) {
+        alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
+        return;
+      }
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer.phone_num}`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -444,7 +457,7 @@ export default {
         if (response.ok) {
           this.loadBuyers();
         } else {
-          alert('O‘chirishda xatolik!');
+          alert('O\'chirishda xatolik!');
         }
       } catch (error) {
         console.error('Error deleting buyer:', error);
@@ -478,7 +491,7 @@ export default {
     },
     async fetchLastThirtyDaysActivities() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/last30days/${this.currentBuyer._id}`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/last30days/${this.currentBuyer._id}`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -499,7 +512,7 @@ export default {
     },
     async fetchDebtLimit() {
       try {
-        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -515,7 +528,7 @@ export default {
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
-        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -648,7 +661,7 @@ export default {
     font-weight: bold;
   }
 
-  .price-value.edit-modal, {
+  .price-value.edit-modal {
     font-weight: normal;
   }
 

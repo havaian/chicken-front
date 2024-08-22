@@ -38,7 +38,7 @@ export default {
     };
 
     onMounted(() => {
-      username.value = localStorage.getItem('username') || 'Username Placeholder';
+      username.value = localStorage.getItem('username') || 'username';
     });
 
     return {

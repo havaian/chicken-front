@@ -105,7 +105,7 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/courier/all`, {
+        const response = await fetch(`http://141.98.153.217:26004/courier/all`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -121,7 +121,7 @@ export default {
     },
     async createCourier() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/courier/new`, {
+        const response = await fetch(`http://141.98.153.217:26004/courier/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newCourier)
@@ -137,13 +137,28 @@ export default {
       }
     },
     confirmUpdateCourier() {
-      this.confirmationMessage = 'Kuryer ma‘lumotlarini o‘zgartirishni tasdiqlaysizmi?';
+      this.confirmationMessage = 'Kuryer ma\'lumotlarini o\'zgartirishni tasdiqlaysizmi?';
       this.pendingAction = this.updateCourier;
       this.showConfirmModal = true;
     },
     async updateCourier() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/courier/${this.currentCourier._id}`, {
+        // First, check if the courier has started their day
+        const activityResponse = await fetch(`http://141.98.153.217:26004/courier/activity/today/${this.currentCourier.phone_num}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
+        });
+        
+        const activityData = await activityResponse.json();
+        
+        if (activityData.accepted_today) {
+          alert("Ushbu kuryer ish kunini boshlagan. Kun tugaguncha ma'lumotlarni o'zgartirib bo'lmaydi.");
+          this.closeEditModal();
+          return;
+        }
+        
+        // If the courier hasn't started their day, proceed with the update
+        const updateResponse = await fetch(`http://141.98.153.217:26004/courier/${this.currentCourier._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({
@@ -152,7 +167,8 @@ export default {
             car_num: this.currentCourier.car_num
           })
         });
-        if (response.ok) {
+        
+        if (updateResponse.ok) {
           this.closeEditModal();
           await this.loadCouriers();
         } else {
@@ -160,6 +176,7 @@ export default {
         }
       } catch (error) {
         console.error('Error updating courier:', error);
+        alert("Tahrirlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       }
     },
     confirmDeleteCourier(courier) {
@@ -170,17 +187,33 @@ export default {
     },
     async deleteCourier() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/courier/${this.currentCourier.phone_num}`, {
+        // First, check if the courier has started their day
+        const activityResponse = await fetch(`http://141.98.153.217:26004/courier/activity/today/${this.currentCourier.phone_num}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
+        });
+        
+        const activityData = await activityResponse.json();
+        
+        if (activityData.accepted_today) {
+          alert("Ushbu kuryer ish kunini boshlagan. Kun tugaguncha ma'lumotlarni o'zgartirib bo'lmaydi.");
+          return;
+        }
+        
+        // If the courier hasn't started their day, proceed with deletion
+        const deleteResponse = await fetch(`http://141.98.153.217:26004/courier/${this.currentCourier.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
-        if (response.ok) {
+        
+        if (deleteResponse.ok) {
           await this.loadCouriers();
         } else {
-          alert('O\'chirishda xatolik!');
+          alert("O'chirishda xatolik!");
         }
       } catch (error) {
         console.error('Error deleting courier:', error);
+        alert("O'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       }
     },
     confirmAction() {
@@ -277,6 +310,8 @@ export default {
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
+    color: white;
+    background-color: #007bff;
     transition: background-color 0.3s;
     width: 150px;
   }
@@ -287,7 +322,6 @@ export default {
 
   .edit-button {
     background-color: #007bff;
-    color: white;
   }
 
   .edit-button:hover {
@@ -296,7 +330,6 @@ export default {
 
   .delete-button {
     background-color: #dc3545;
-    color: white;
   }
 
   .delete-button:hover {

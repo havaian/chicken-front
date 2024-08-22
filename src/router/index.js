@@ -5,33 +5,33 @@ import Mijozlar from '../components/Mijozlar.vue';
 import TuxumNarxi from '../components/TuxumNarxi.vue';
 
 const routes = [
-  {
-    path: '/login',
-    name: 'Login',
-    component: Login
-  },
+  // {
+  //   path: '/login',
+  //   name: 'Login',
+  //   component: Login
+  // },
   {
     path: '/kuryerlar',
     name: 'CourierList',
     component: CourierList,
-    meta: { requiresAuth: true }
+    // meta: { requiresAuth: true }
   },
   {
     path: '/mijozlar',
     name: 'Mijozlar',
     component: Mijozlar,
-    meta: { requiresAuth: true }
+    // meta: { requiresAuth: true }
   },
   {
     path: '/tuxum',
     name: 'TuxumNarxi',
     component: TuxumNarxi,
-    meta: { requiresAuth: true }
+    // meta: { requiresAuth: true }
   },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/login'
-  }
+  // {
+  //   path: '/:pathMatch(.*)*',
+  //   redirect: '/login'
+  // }
 ];
 
 const router = createRouter({

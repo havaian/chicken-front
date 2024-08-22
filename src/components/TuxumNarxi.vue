@@ -34,7 +34,7 @@
     methods: {
       async loadPrices() {
         try {
-          const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
+          const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           });
@@ -46,7 +46,7 @@
       },
       async savePrices() {
         try {
-          await fetch(`http://141.98.153.217:16005/data/prices`, {
+          await fetch(`http://141.98.153.217:26005/data/prices`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
             body: JSON.stringify(this.localPrices),
