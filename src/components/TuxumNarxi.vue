@@ -20,45 +20,55 @@
 </template>
   
 <script>
-  export default {
-    name: 'TuxumNarxi',
-    data() {
-      return {
-        prices: null,
-        localPrices: {}
-      };
+export default {
+  name: 'TuxumNarxi',
+  data() {
+    return {
+      prices: null,
+      localPrices: {}
+    };
+  },
+  async mounted() {
+    await this.loadPrices();
+  },
+  methods: {
+    async loadPrices() {
+      try {
+        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
+        });
+        this.prices = await response.json();
+        this.localPrices = { ...this.prices };
+      } catch (error) {
+        console.error('Error loading prices:', error);
+      }
     },
-    async mounted() {
-      await this.loadPrices();
-    },
-    methods: {
-      async loadPrices() {
-        try {
-          const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-          });
-          this.prices = await response.json();
-          this.localPrices = { ...this.prices };
-        } catch (error) {
-          console.error('Error loading prices:', error);
-        }
-      },
-      async savePrices() {
-        try {
-          await fetch(`http://141.98.153.217:26005/data/prices`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-            body: JSON.stringify(this.localPrices),
-          });
-          alert('Prices updated!');
-          await this.loadPrices(); // Reload prices to reflect updates
-        } catch (error) {
-          console.error('Error updating prices:', error);
-        }
+    async savePrices() {
+      try {
+        // Update prices
+        await fetch(`http://141.98.153.217:16005/data/prices`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
+          body: JSON.stringify(this.localPrices),
+        });
+
+        // Update today's activities' prices
+        await fetch(`http://141.98.153.217:16004/buyer/activity/update-todays-prices`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
+          body: JSON.stringify({ price: this.localPrices }),
+        });
+
+        alert('Prices updated successfully!');
+        await this.loadPrices(); // Reload prices to reflect updates
+      } catch (error) {
+        console.error('Error updating prices:', error);
+        alert('An error occurred while updating prices. Please try again.');
       }
     }
   }
+}
 </script>
 
 <style scoped>
