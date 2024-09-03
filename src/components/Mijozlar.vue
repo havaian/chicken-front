@@ -196,7 +196,7 @@ export default {
         { value: 'price', label: 'Tuxum narxi' },
         { value: 'debt', label: 'Qarz' }
       ],
-      selectedFilters: ['name', 'phone'], // Default selections
+      selectedFilters: ['name', 'phone'],
       lastThirtyDaysActivities: [],
       debtLimit: 0,
       updatingDebtLimit: false,
@@ -243,10 +243,10 @@ export default {
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:26004/buyer/all`, {
+          fetch(`http://141.98.153.217:16004/buyer/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch(`http://141.98.153.217:26004/buyer/activity/today/all`, {
+          fetch(`http://141.98.153.217:16004/buyer/activity/today/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);
@@ -254,90 +254,41 @@ export default {
         const buyers = await buyersResponse.json();
         const activities = await activitiesResponse.json();
 
+        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
         // Merge buyers with their activities
         this.buyers = buyers.map(buyer => {
           const activity = activities.find(a => a.buyer === buyer._id);
+
+          let price;
+          if (activity.buyer === buyer._id && (activity.price && Object.keys(activity.price).length !== 0)) {
+            // If activity exists and is from today, use its price
+            price = activity.price;
+          } else {
+            // If no activity or activity is not from today, use default prices
+            price = {...this.defaultPrices};
+          }
+
           return {
             ...buyer,
-            price: activity && Object.keys(activity.price).length > 0 ? activity.price : {...this.defaultPrices},
+            price: price,
             debt: activity ? activity.debt : 0,
             activityId: activity ? activity._id : null,
-            individualDebtLimit: buyer.debt_limit // Add this line
+            individualDebtLimit: buyer.debt_limit
           };
         });
-
       } catch (error) {
         console.error('Error loading data:', error);
       }
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
+        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         this.defaultPrices = await response.json();
       } catch (error) {
         console.error('Error loading default prices:', error);
-      }
-    },
-    async updateBuyer() {
-      try {
-        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username')
-          },
-          body: JSON.stringify({
-            full_name: this.currentBuyer.full_name,
-            phone_num: this.currentBuyer.phone_num,
-            deactivated: this.currentBuyer.deactivated,
-            debt_limit: this.currentBuyer.individualDebtLimit
-          })
-        });
-
-        if (!buyerResponse.ok) {
-          throw new Error('Failed to update buyer information');
-        }
-
-        if (buyerResponse.ok) {
-          // Update buyer info
-          await this.updateBuyerActivity(this.currentBuyer);
-          this.showEditModal = false;
-          this.loadBuyers();
-        } else {
-          alert('Tahrirlashda xatolik!');
-        }
-      } catch (error) {
-        console.error('Error updating buyer:', error);
-      }
-    },
-    async updateBuyerActivity(buyer) {
-      if (!buyer.activityId) {
-        console.error('No activity ID found for this buyer');
-        return;
-      }
-      try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/${buyer.activityId}`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username')
-          },
-          body: JSON.stringify({ 
-            price: buyer.price,
-            debt: buyer.debt
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update activity');
-        }
-
-        alert('Ma\'lumotlar muvaffaqiyatli yangilandi');
-      } catch (error) {
-        console.error('Error updating activity:', error);
-        alert('Ma\'lumotlarni yangilashda xatolik yuz berdi');
       }
     },
     confirmCreateBuyer() {
@@ -347,7 +298,7 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/new`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newBuyer)
@@ -370,7 +321,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -388,41 +339,38 @@ export default {
           throw new Error('Failed to update buyer information');
         }
 
-        // Update buyer activity
-        if (this.currentBuyer.activityId) {
-          const activityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/${this.currentBuyer.activityId}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json', 
-              'x-user-website': localStorage.getItem('username')
-            },
-            body: JSON.stringify({ 
-              price: this.currentBuyer.price,
-              debt: this.currentBuyer.debt
-            })
-          });
-
-          if (!activityResponse.ok) {
-            throw new Error('Failed to update buyer activity');
+        // Fetch today's activity for the buyer
+        const todayActivityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/today/${this.currentBuyer._id}`, {
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-user-website': localStorage.getItem('username')
           }
-        } else {
-          // If there's no activity, create a new one
-          const newActivityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/new`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json', 
-              'x-user-website': localStorage.getItem('username')
-            },
-            body: JSON.stringify({
-              buyer: this.currentBuyer._id,
-              price: this.currentBuyer.price,
-              debt: this.currentBuyer.debt
-            })
-          });
+        });
 
-          if (!newActivityResponse.ok) {
-            throw new Error('Failed to create new buyer activity');
-          }
+        if (!todayActivityResponse.ok) {
+          throw new Error('Failed to fetch today\'s activity');
+        }
+
+        const todayActivity = await todayActivityResponse.json();
+
+        // Update the activity with new price and debt
+        const updatedActivity = {
+          ...todayActivity,
+          price: this.currentBuyer.price,
+          debt: this.currentBuyer.debt
+        };
+
+        const activityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/${todayActivity._id}`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'x-user-website': localStorage.getItem('username')
+          },
+          body: JSON.stringify(updatedActivity)  // Fix: Stringify the body
+        });
+
+        if (!activityResponse.ok) {
+          throw new Error('Failed to update buyer activity');
         }
 
         this.showEditModal = false;
@@ -449,7 +397,7 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer.phone_num}`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -491,7 +439,7 @@ export default {
     },
     async fetchLastThirtyDaysActivities() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/last30days/${this.currentBuyer._id}`, {
+        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/last30days/${this.currentBuyer._id}`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -512,7 +460,7 @@ export default {
     },
     async fetchDebtLimit() {
       try {
-        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -528,7 +476,7 @@ export default {
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
-        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
