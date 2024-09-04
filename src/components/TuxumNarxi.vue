@@ -34,7 +34,7 @@ export default {
   methods: {
     async loadPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
+        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -47,14 +47,14 @@ export default {
     async savePrices() {
       try {
         // Update prices
-        await fetch(`http://141.98.153.217:16005/data/prices`, {
+        await fetch(`http://141.98.153.217:26005/data/prices`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.localPrices),
         });
 
         // Update today's activities' prices
-        await fetch(`http://141.98.153.217:16004/buyer/activity/update-todays-prices`, {
+        await fetch(`http://141.98.153.217:26004/buyer/activity/update-todays-prices`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify({ price: this.localPrices }),

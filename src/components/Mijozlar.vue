@@ -243,10 +243,10 @@ export default {
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:16004/buyer/all`, {
+          fetch(`http://141.98.153.217:26004/buyer/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch(`http://141.98.153.217:16004/buyer/activity/today/all`, {
+          fetch(`http://141.98.153.217:26004/buyer/activity/today/all`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);
@@ -261,7 +261,10 @@ export default {
           const activity = activities.find(a => a.buyer === buyer._id);
 
           let price;
-          if (activity.buyer === buyer._id && (activity.price && Object.keys(activity.price).length !== 0)) {
+
+          console.log(activity.isToday ? activity : {});
+
+          if (activity.isToday) {
             // If activity exists and is from today, use its price
             price = activity.price;
           } else {
@@ -283,7 +286,7 @@ export default {
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:16005/data/prices`, {
+        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         this.defaultPrices = await response.json();
@@ -298,7 +301,7 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/new`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/new`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
           body: JSON.stringify(this.newBuyer)
@@ -321,7 +324,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -340,7 +343,7 @@ export default {
         }
 
         // Fetch today's activity for the buyer
-        const todayActivityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/today/${this.currentBuyer._id}`, {
+        const todayActivityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/today/${this.currentBuyer._id}`, {
           headers: { 
             'Content-Type': 'application/json', 
             'x-user-website': localStorage.getItem('username')
@@ -360,7 +363,7 @@ export default {
           debt: this.currentBuyer.debt
         };
 
-        const activityResponse = await fetch(`http://141.98.153.217:16004/buyer/activity/${todayActivity._id}`, {
+        const activityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/${todayActivity._id}`, {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 
@@ -397,7 +400,7 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/${this.currentBuyer.phone_num}`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer.phone_num}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -439,7 +442,7 @@ export default {
     },
     async fetchLastThirtyDaysActivities() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/buyer/activity/last30days/${this.currentBuyer._id}`, {
+        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/last30days/${this.currentBuyer._id}`, {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -460,7 +463,7 @@ export default {
     },
     async fetchDebtLimit() {
       try {
-        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
         if (response.ok) {
@@ -476,7 +479,7 @@ export default {
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
-        const response = await fetch('http://141.98.153.217:16005/data/debt-limit', {
+        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json', 

@@ -27,18 +27,6 @@
         </div>
       </div>
 
-      <!-- Create Courier Modal -->
-      <div v-if="showCreateModal" class="modal">
-        <div class="modal-content">
-          <span class="close" @click="closeCreateModal">&times;</span>
-          <h3>Yangi Kuryer Yaratish</h3>
-          <input v-model="newCourier.full_name" type="text" placeholder="To‘liq ism" required />
-          <input v-model="newCourier.phone_num" type="text" placeholder="Telefon raqami" required />
-          <input v-model="newCourier.car_num" type="text" placeholder="Avtomobil raqami" />
-          <button @click="confirmCreateCourier">Kuryerni Yaratish</button>
-        </div>
-      </div>
-
       <!-- Edit Courier Modal -->
       <div v-if="showEditModal" class="modal">
         <div class="modal-content">
@@ -73,11 +61,6 @@ export default {
       showCreateModal: false,
       showEditModal: false,
       showConfirmModal: false,
-      newCourier: {
-        full_name: '',
-        phone_num: '',
-        car_num: ''
-      },
       currentCourier: {
         _id: '',
         full_name: '',
@@ -112,28 +95,6 @@ export default {
         this.couriers = await response.json();
       } catch (error) {
         console.error('Error loading couriers:', error);
-      }
-    },
-    confirmCreateCourier() {
-      this.confirmationMessage = 'Yangi kuryer yaratishni tasdiqlaysizmi?';
-      this.pendingAction = this.createCourier;
-      this.showConfirmModal = true;
-    },
-    async createCourier() {
-      try {
-        const response = await fetch(`http://141.98.153.217:26004/courier/new`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-          body: JSON.stringify(this.newCourier)
-        });
-        if (response.ok) {
-          this.closeCreateModal();
-          await this.loadCouriers();
-        } else {
-          alert('Yaratishda xatolik!');
-        }
-      } catch (error) {
-        console.error('Error creating courier:', error);
       }
     },
     confirmUpdateCourier() {
@@ -226,13 +187,6 @@ export default {
     cancelAction() {
       this.showConfirmModal = false;
       this.pendingAction = null;
-    },
-    openCreateModal() {
-      this.showCreateModal = true;
-    },
-    closeCreateModal() {
-      this.showCreateModal = false;
-      this.newCourier = { full_name: '', phone_num: '', car_num: '' };
     },
     openEditModal(courier) {
       this.currentCourier = { ...courier };
