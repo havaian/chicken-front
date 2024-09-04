@@ -165,6 +165,9 @@
 </template>
 
 <script>
+import backAxios from '../services/back.axiosConfig';
+import botAxios from '../services/bot.axiosConfig';
+
 export default {
   data() {
     return {
@@ -243,16 +246,12 @@ export default {
     async loadBuyers() {
       try {
         const [buyersResponse, activitiesResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:26004/buyer/all`, {
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-          }),
-          fetch(`http://141.98.153.217:26004/buyer/activity/today/all`, {
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-          })
+          backAxios.get('/buyer/all'),
+          backAxios.get('/buyer/activity/today/all')
         ]);
 
-        const buyers = await buyersResponse.json();
-        const activities = await activitiesResponse.json();
+        const buyers = await buyersResponse.data;
+        const activities = await activitiesResponse.data;
 
         const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
 
@@ -261,8 +260,6 @@ export default {
           const activity = activities.find(a => a.buyer === buyer._id);
 
           let price;
-
-          console.log(activity.isToday ? activity : {});
 
           if (activity.isToday) {
             // If activity exists and is from today, use its price
@@ -286,10 +283,8 @@ export default {
     },
     async loadDefaultPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        this.defaultPrices = await response.json();
+        const response = await botAxios.get('/data/prices');
+        this.defaultPrices = await response.data;
       } catch (error) {
         console.error('Error loading default prices:', error);
       }
@@ -301,13 +296,9 @@ export default {
     },
     async createBuyer() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/new`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-          body: JSON.stringify(this.newBuyer)
-        });
+        const response = await backAxios.post('/buyer/new', this.newBuyer);
 
-        if (response.ok) {
+        if (response.status === 200) {
           this.showCreateModal = false;
           this.loadBuyers();
         } else {
@@ -324,37 +315,25 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer._id}`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username')
-          },
-          body: JSON.stringify({
-            full_name: this.currentBuyer.full_name,
-            phone_num: this.currentBuyer.phone_num,
-            deactivated: this.currentBuyer.deactivated,
-            debt_limit: this.currentBuyer.individualDebtLimit
-          })
+        const buyerResponse = await backAxios.put(`/buyer/${this.currentBuyer._id}`, {
+          full_name: this.currentBuyer.full_name,
+          phone_num: this.currentBuyer.phone_num,
+          deactivated: this.currentBuyer.deactivated,
+          debt_limit: this.currentBuyer.individualDebtLimit
         });
 
-        if (!buyerResponse.ok) {
+        if (!buyerResponse.status === 200) {
           throw new Error('Failed to update buyer information');
         }
 
         // Fetch today's activity for the buyer
-        const todayActivityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/today/${this.currentBuyer._id}`, {
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username')
-          }
-        });
+        const todayActivityResponse = await backAxios.get(`/buyer/activity/today/${this.currentBuyer._id}`);
 
-        if (!todayActivityResponse.ok) {
+        if (!todayActivityResponse.status === 200) {
           throw new Error('Failed to fetch today\'s activity');
         }
 
-        const todayActivity = await todayActivityResponse.json();
+        const todayActivity = await todayActivityResponse.data;
 
         // Update the activity with new price and debt
         const updatedActivity = {
@@ -363,16 +342,9 @@ export default {
           debt: this.currentBuyer.debt
         };
 
-        const activityResponse = await fetch(`http://141.98.153.217:26004/buyer/activity/${todayActivity._id}`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username')
-          },
-          body: JSON.stringify(updatedActivity)  // Fix: Stringify the body
-        });
+        const activityResponse = await backAxios.put(`/buyer/activity/${todayActivity._id}`, updatedActivity);
 
-        if (!activityResponse.ok) {
+        if (!activityResponse.status === 200) {
           throw new Error('Failed to update buyer activity');
         }
 
@@ -400,12 +372,9 @@ export default {
         return;
       }
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/${this.currentBuyer.phone_num}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
+        const response = await backAxios.delete(`/buyer/${this.currentBuyer.phone_num}`);
 
-        if (response.ok) {
+        if (response.status === 200) {
           this.loadBuyers();
         } else {
           alert('O\'chirishda xatolik!');
@@ -442,11 +411,9 @@ export default {
     },
     async fetchLastThirtyDaysActivities() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/buyer/activity/last30days/${this.currentBuyer._id}`, {
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        if (response.ok) {
-          this.lastThirtyDaysActivities = await response.json();
+        const response = await backAxios.get(`/buyer/activity/last30days/${this.currentBuyer._id}`);
+        if (response.status === 200) {
+          this.lastThirtyDaysActivities = await response.data;
         } else {
           console.error('Failed to fetch last 30 days activities');
         }
@@ -463,11 +430,9 @@ export default {
     },
     async fetchDebtLimit() {
       try {
-        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        if (response.ok) {
-          const data = await response.json();
+        const response = await botAxios.get('/data/debt-limit');
+        if (response.status === 200) {
+          const data = await response.data;
           this.debtLimit = data.debtLimit;
         } else {
           console.error('Failed to fetch debt limit');
@@ -479,15 +444,8 @@ export default {
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
-        const response = await fetch('http://141.98.153.217:26005/data/debt-limit', {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'x-user-website': localStorage.getItem('username') 
-          },
-          body: JSON.stringify({ debtLimit: this.debtLimit })
-        });
-        if (response.ok) {
+        const response = await botAxios.put('/data/debt-limit', this.debtLimit);
+        if (response.status === 200) {
           console.log('Debt limit updated successfully');
         } else {
           console.error('Failed to update debt limit');

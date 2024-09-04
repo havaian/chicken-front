@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import axiosInstance from '../services/back.axiosConfig';
+
 export default {
   data() {
     return {
@@ -88,11 +90,8 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/courier/all`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        this.couriers = await response.json();
+        const response = await axiosInstance.get('/courier/all');
+        this.couriers = await response.data;
       } catch (error) {
         console.error('Error loading couriers:', error);
       }
@@ -105,12 +104,9 @@ export default {
     async updateCourier() {
       try {
         // First, check if the courier has started their day
-        const activityResponse = await fetch(`http://141.98.153.217:26004/courier/activity/today/${this.currentCourier.phone_num}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
+        const activityResponse = await axiosInstance.get(`/courier/activity/today/${this.currentCourier.phone_num}`);
         
-        const activityData = await activityResponse.json();
+        const activityData = await activityResponse.data;
         
         if (activityData.accepted_today) {
           alert("Ushbu kuryer ish kunini boshlagan. Kun tugaguncha ma'lumotlarni o'zgartirib bo'lmaydi.");
@@ -118,18 +114,13 @@ export default {
           return;
         }
         
-        // If the courier hasn't started their day, proceed with the update
-        const updateResponse = await fetch(`http://141.98.153.217:26004/courier/${this.currentCourier._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-          body: JSON.stringify({
-            full_name: this.currentCourier.full_name,
-            phone_num: this.currentCourier.phone_num,
-            car_num: this.currentCourier.car_num
-          })
+        const updateResponse = await axiosInstance.put(`/courier/${this.currentCourier._id}`, {
+          full_name: this.currentCourier.full_name,
+          phone_num: this.currentCourier.phone_num,
+          car_num: this.currentCourier.car_num
         });
         
-        if (updateResponse.ok) {
+        if (updateResponse.status === 200) {
           this.closeEditModal();
           await this.loadCouriers();
         } else {
@@ -148,26 +139,16 @@ export default {
     },
     async deleteCourier() {
       try {
-        // First, check if the courier has started their day
-        const activityResponse = await fetch(`http://141.98.153.217:26004/courier/activity/today/${this.currentCourier.phone_num}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
+        const activityResponse = await axiosInstance.get(`/courier/activity/today/${this.currentCourier.phone_num}`);
         
-        const activityData = await activityResponse.json();
-        
-        if (activityData.accepted_today) {
+        if (activityResponse.data.accepted_today) {
           alert("Ushbu kuryer ish kunini boshlagan. Kun tugaguncha ma'lumotlarni o'zgartirib bo'lmaydi.");
           return;
         }
         
-        // If the courier hasn't started their day, proceed with deletion
-        const deleteResponse = await fetch(`http://141.98.153.217:26004/courier/${this.currentCourier.phone_num}`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
+        const deleteResponse = await axiosInstance.delete(`/courier/${this.currentCourier.phone_num}`);
         
-        if (deleteResponse.ok) {
+        if (deleteResponse.status === 200) {
           await this.loadCouriers();
         } else {
           alert("O'chirishda xatolik!");

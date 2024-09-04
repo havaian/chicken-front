@@ -11,68 +11,70 @@
 </template>
 
 <script>
-  export default {
-    data() {
-      return {
-        username: '',
-        password: '',
-        error: false,
-        errorMessage: '',
-        isLoggedIn: false,
-      };
+import loginAxiosInstance from '../services/bot.axiosConfig';
+
+export default {
+  data() {
+    return {
+      username: '',
+      password: '',
+      error: false,
+      errorMessage: '',
+      isLoggedIn: false,
+    };
+  },
+  created() {
+    // this.checkLogin();
+  },
+  methods: {
+    setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = `${name}=${value}; ${expires}; path=/`;
     },
-    created() {
-      this.checkLogin();
+    getCookie(name) {
+      const nameEQ = name + "=";
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i];
+        while (cookie.charAt(0) === ' ') cookie = cookie.substring(1);
+        if (cookie.indexOf(nameEQ) === 0) return cookie.substring(nameEQ.length);
+      }
+      return null;
     },
-    methods: {
-      setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        const expires = "expires=" + date.toUTCString();
-        document.cookie = `${name}=${value}; ${expires}; path=/`;
-      },
-      getCookie(name) {
-        const nameEQ = name + "=";
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          let cookie = cookies[i];
-          while (cookie.charAt(0) === ' ') cookie = cookie.substring(1);
-          if (cookie.indexOf(nameEQ) === 0) return cookie.substring(nameEQ.length);
-        }
-        return null;
-      },
-      async login() {
-        try {
-          const response = await fetch(`http://141.98.153.217:26005/data/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: this.username, password: this.password }),
-          });
-          
-          if (response.ok) {
-            this.setCookie('isLoggedIn', 'true', 1);
-            localStorage.setItem('username', this.username);
-            this.$router.push('/tuxum'); // Redirect to another page
-          } else {
-            this.error = true;
-            this.errorMessage = 'Invalid username or password';
-          }
-        } catch (error) {
-          console.error('Error logging in:', error);
+    async login() {
+      try {
+        const response = await loginAxiosInstance.post('/data/login', 
+          { username: this.username }
+        );
+        
+        if (response.status === 200) {
+          this.setCookie('isLoggedIn', 'true', 1);
+          // localStorage.setItem('username', this.username);
+          // localStorage.setItem('authHash', authHash);
+          this.$router.push('/tuxum'); // Redirect to another page
+        } else {
           this.error = true;
-          this.errorMessage = 'Error logging in. Please try again later.';
+          this.errorMessage = 'Invalid username or password';
         }
-      },
-      checkLogin() {
-        const isLoggedIn = this.getCookie('isLoggedIn');
-        const storedUsername = localStorage.getItem('username');
-        this.isLoggedIn = (isLoggedIn === 'true' || storedUsername);
-        if (!isLoggedIn) {
-          localStorage.removeItem('username');
-        }
-      },
+      } catch (error) {
+        console.error('Error logging in:', error);
+        this.error = true;
+        this.errorMessage = 'Error logging in. Please try again later.';
+      }
     },
-  };
+    checkLogin() {
+      // const isLoggedIn = this.getCookie('isLoggedIn');
+      // const storedUsername = localStorage.getItem('username');
+      // this.isLoggedIn = (isLoggedIn === 'true' && storedUsername);
+      // if (!this.isLoggedIn) {
+      //   localStorage.removeItem('username');
+      //   localStorage.removeItem('authHash');
+      // }
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -82,7 +84,7 @@
     align-items: center;
     height: 100vh;
     z-index: 100000 !important;
-    oveflow: hidden !important;
+    /* oveflow: hidden !important; */
   }
 
   #login {

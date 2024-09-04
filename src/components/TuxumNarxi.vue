@@ -20,6 +20,9 @@
 </template>
   
 <script>
+import backAxios from '../services/back.axiosConfig';
+import botAxios from '../services/bot.axiosConfig';
+
 export default {
   name: 'TuxumNarxi',
   data() {
@@ -34,11 +37,8 @@ export default {
   methods: {
     async loadPrices() {
       try {
-        const response = await fetch(`http://141.98.153.217:26005/data/prices`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        this.prices = await response.json();
+        const response = await botAxios.get('/data/prices');
+        this.prices = await response.data;
         this.localPrices = { ...this.prices };
       } catch (error) {
         console.error('Error loading prices:', error);
@@ -47,24 +47,16 @@ export default {
     async savePrices() {
       try {
         // Update prices
-        await fetch(`http://141.98.153.217:26005/data/prices`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-          body: JSON.stringify(this.localPrices),
-        });
+        await botAxios.put('/data/prices', this.localPrices);
 
         // Update today's activities' prices
-        await fetch(`http://141.98.153.217:26004/buyer/activity/update-todays-prices`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') },
-          body: JSON.stringify({ price: this.localPrices }),
-        });
+        await backAxios.put('/buyer/activity/update-todays-prices', { price: this.localPrices });
 
-        alert('Prices updated successfully!');
+        alert('Narxlar muvaffaqiyatli yangilandi!');
         await this.loadPrices(); // Reload prices to reflect updates
       } catch (error) {
         console.error('Error updating prices:', error);
-        alert('An error occurred while updating prices. Please try again.');
+        alert('Xatolik yuz berdi!');
       }
     }
   }
