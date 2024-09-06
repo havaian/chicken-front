@@ -81,7 +81,7 @@
         <div class="modal-content">
           <span class="close" @click="closeEditModal">&times;</span>
           <h3>Mijozni Tahrirlash</h3>
-          <input type="hidden" v-model="currentBuyer._id" />
+          <input type="hidden" v-model="currentBuyer.phone_num" />
           <input type="text" v-model="currentBuyer.full_name" placeholder="To'liq ism" required />
           <input type="text" v-model="currentBuyer.phone_num" placeholder="Telefon raqami" required />
           <div class="price-inputs">
@@ -245,38 +245,20 @@ export default {
     },
     async loadBuyers() {
       try {
-        const [buyersResponse, activitiesResponse] = await Promise.all([
-          backAxios.get('/buyer/all'),
-          backAxios.get('/buyer/activity/today/all')
-        ]);
-
-        const buyers = await buyersResponse.data;
+        const activitiesResponse = await backAxios.get('/buyer/activity/today/all');
         const activities = await activitiesResponse.data;
 
-        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-
-        // Merge buyers with their activities
-        this.buyers = buyers.map(buyer => {
-          const activity = activities.find(a => a.buyer === buyer._id);
-
-          let price;
-
-          if (activity.isToday) {
-            // If activity exists and is from today, use its price
-            price = activity.price;
-          } else {
-            // If no activity or activity is not from today, use default prices
-            price = {...this.defaultPrices};
-          }
-
-          return {
-            ...buyer,
-            price: price,
-            debt: activity ? activity.debt : 0,
-            activityId: activity ? activity._id : null,
-            individualDebtLimit: buyer.debt_limit
-          };
-        });
+        this.buyers = activities.map(activity => ({
+          _id: activity.buyer,
+          full_name: activity.full_name,
+          phone_num: activity.phone_num,
+          price: activity.price || this.defaultPrices,
+          debt: activity.debt,
+          activityId: activity._id,
+          deactivated: activity.deactivated,
+          debt_limit: activity.debt_limit,
+          isToday: activity.isToday
+        }));
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -315,7 +297,7 @@ export default {
     },
     async updateBuyer() {
       try {
-        const buyerResponse = await backAxios.put(`/buyer/${this.currentBuyer._id}`, {
+        const buyerResponse = await backAxios.put(`/buyer/${this.currentBuyer.phone_num}`, {
           full_name: this.currentBuyer.full_name,
           phone_num: this.currentBuyer.phone_num,
           deactivated: this.currentBuyer.deactivated,
@@ -327,7 +309,7 @@ export default {
         }
 
         // Fetch today's activity for the buyer
-        const todayActivityResponse = await backAxios.get(`/buyer/activity/today/${this.currentBuyer._id}`);
+        const todayActivityResponse = await backAxios.get(`/buyer/activity/today/${this.currentBuyer.phone_num}`);
 
         if (!todayActivityResponse.status === 200) {
           throw new Error('Failed to fetch today\'s activity');
@@ -411,7 +393,7 @@ export default {
     },
     async fetchLastThirtyDaysActivities() {
       try {
-        const response = await backAxios.get(`/buyer/activity/last30days/${this.currentBuyer._id}`);
+        const response = await backAxios.get(`/buyer/activity/last30days/${this.currentBuyer.phone_num}`);
         if (response.status === 200) {
           this.lastThirtyDaysActivities = await response.data;
         } else {
@@ -686,13 +668,13 @@ export default {
   }
   
   #buyerList > div {
-    padding: 1% 15%;
+    padding: 1% 23% 1% 15%;
     background-color: #fff;
     border: 1px solid #aaa;
     border-radius: 6px;
     display: inline-grid;
     gap: 5%;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, calc(100% / 6));
     justify-content: center;
     align-items: center;
     text-align: center;
