@@ -298,7 +298,8 @@ export default {
       try {
         const response = await backAxios.post('/buyer/new', this.newBuyer);
 
-        if (response.status === 200) {
+        if (response.status === 201) {
+          alert("Yangi mijoz muvaffaqiyatli qo'shildi!")
           this.showCreateModal = false;
           this.loadBuyers();
         } else {
@@ -372,9 +373,10 @@ export default {
         return;
       }
       try {
-        const response = await backAxios.delete(`/buyer/${this.currentBuyer.phone_num}`);
+        const response = await backAxios.delete(`/buyer/${this.currentBuyer._id}`);
 
         if (response.status === 200) {
+          alert("Mijoz muvaffaqiyatli o'chirildi!")
           this.loadBuyers();
         } else {
           alert('O\'chirishda xatolik!');
