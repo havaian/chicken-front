@@ -127,7 +127,7 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch(`http://141.98.153.217:26004/courier/all`, {
+        const response = await fetch(`http://141.98.153.217:16004/courier/all`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
         });
@@ -153,10 +153,10 @@ export default {
 
       try {
         const [courierResponse, warehouseResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:26004/courier/activity/by-date/${this.selectedDate}`, {
+          fetch(`http://141.98.153.217:16004/courier/activity/by-date/${this.selectedDate}`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           }),
-          fetch(`http://141.98.153.217:26004/warehouse/activity/by-date/${warehouseDate.toISOString()}`, {
+          fetch(`http://141.98.153.217:16004/warehouse/activity/by-date/${warehouseDate.toISOString()}`, {
             headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
           })
         ]);

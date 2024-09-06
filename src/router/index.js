@@ -3,7 +3,7 @@ import Login from '../components/Login.vue';
 import CourierList from '../components/CourierList.vue';
 import Mijozlar from '../components/Mijozlar.vue';
 import TuxumNarxi from '../components/TuxumNarxi.vue';
-import Solishtirish from '../components/Solishtirish.vue';
+// import Solishtirish from '../components/Solishtirish.vue';
 
 const routes = [
   // {
@@ -29,12 +29,12 @@ const routes = [
     component: TuxumNarxi,
     // meta: { requiresAuth: true }
   },
-  {
-    path: '/solishtirish',
-    name: 'Solishtirish',
-    component: Solishtirish,
-    // meta: { requiresAuth: true }
-  },
+  // {
+  //   path: '/solishtirish',
+  //   name: 'Solishtirish',
+  //   component: Solishtirish,
+  //   // meta: { requiresAuth: true }
+  // },
   // {
   //   path: '/:pathMatch(.*)*',
   //   redirect: '/login'

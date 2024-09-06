@@ -5,7 +5,7 @@
         <router-link to="/tuxum" :class="{ active: isActive('/tuxum') }">Tuxum narxi</router-link>
         <router-link to="/mijozlar" :class="{ active: isActive('/mijozlar') }">Mijozlar</router-link>
         <router-link to="/kuryerlar" :class="{ active: isActive('/kuryerlar') }">Kuryerlar</router-link>
-        <router-link to="/solishtirish" :class="{ active: isActive('/solishtirish') }">Solishtirish</router-link>
+        <!-- <router-link to="/solishtirish" :class="{ active: isActive('/solishtirish') }">Solishtirish</router-link> -->
       </nav>
   
       <header>

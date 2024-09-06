@@ -372,7 +372,7 @@ export default {
         return;
       }
       try {
-        const response = await backAxios.delete(`/buyer/${this.currentBuyer.phone_num}`);
+        const response = await backAxios.delete(`/buyer/${this.currentBuyer._id}`);
 
         if (response.status === 200) {
           this.loadBuyers();
