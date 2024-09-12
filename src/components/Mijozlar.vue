@@ -37,26 +37,26 @@
         />
 
         <div id="buyerList">
-          <div v-for="buyer in filteredBuyers" :key="buyer._id" :class="{'buyer-item': buyer.debt < 0, 'buyer-item debt': buyer.debt > 0}">
+          <div v-for="buyer in filteredBuyers" :key="buyer._id" :class="{'buyer-item': buyer.activity.debt < 0, 'buyer-item debt': buyer.activity.debt > 0}">
             <span class="deactivation-status">{{ buyer.deactivated ? '❌' : '✅' }}</span>
             <p class="buyer-name">{{ buyer.full_name }}</p>
             <p class="buyer-phone">{{ buyer.phone_num }}</p>
             <div class="price-grid">
-              <div v-for="(price, category) in buyer.price" :key="category" class="price-item">
+              <div v-for="(price, category) in buyer.activity.price" :key="category" class="price-item">
                 <span class="price-category">{{ category }}:</span>
                 <span class="price-value">{{ price }}</span>
               </div>
             </div>
-            <div class="buyer-debt" :class="{ 'positive-debt': buyer.debt < 0, 'negative-debt': buyer.debt > 0 }">
+            <div class="buyer-debt" :class="{ 'positive-debt': buyer.activity.debt < 0, 'negative-debt': buyer.activity.debt > 0 }">
               <span class="debt-label">Qarz:</span>
-              <span class="debt-value">{{ buyer.debt.toLocaleString() }}</span>
+              <span class="debt-value">{{ buyer.activity.debt.toLocaleString() }}</span>
             </div>
             <div class="button-grid">
               <button @click="openEditModal(buyer)" class="edit-button">Tahrirlash</button>
               <button 
                 @click="confirmDeleteBuyer(buyer)" 
                 class="delete-button"
-                :title="buyer.debt > 0 ? 'Qarzi bo\'lgan mijozni o\'chirib bo\'lmaydi' : ''"
+                :title="buyer.activity.debt > 0 ? 'Qarzi bo\'lgan mijozni o\'chirib bo\'lmaydi' : ''"
               >
                 O'chirish
               </button>
@@ -85,11 +85,11 @@
           <input type="text" v-model="currentBuyer.full_name" placeholder="To'liq ism" required />
           <input type="text" v-model="currentBuyer.phone_num" placeholder="Telefon raqami" required />
           <div class="price-inputs">
-            <div v-for="(price, category) in currentBuyer.price" :key="category" class="price-input-item">
+            <div v-for="(price, category) in currentBuyer.activity.price" :key="category" class="price-input-item">
               <label :for="'price-' + category">{{ category }}</label>
               <input 
                 :id="'price-' + category"
-                v-model.number="currentBuyer.price[category]" 
+                v-model.number="currentBuyer.activity.price[category]" 
                 type="number"
                 :placeholder="category"
               />
@@ -97,11 +97,11 @@
           </div>
           <div class="debt-input">
             <label for="debt">Qarz</label>
-            <input id="debt" v-model.number="currentBuyer.debt" type="number" placeholder="Qarz" />
+            <input id="debt" v-model.number="currentBuyer.activity.debt" type="number" placeholder="Qarz" />
           </div>
           <div class="debt-limit-input">
             <label for="individualDebtLimit">Shaxsiy Qarz Chegarasi</label>
-            <input id="individualDebtLimit" v-model.number="currentBuyer.individualDebtLimit" type="number" placeholder="Shaxsiy Qarz Chegarasi" />
+            <input id="individualDebtLimit" v-model.number="currentBuyer.debt_limit" type="number" placeholder="Shaxsiy Qarz Chegarasi" />
           </div>
           <div class="deactivate-option">
             <label>
@@ -184,11 +184,13 @@ export default {
         _id: '',
         full_name: '',
         phone_num: '',
-        price: {},
-        debt: 0,
-        activityId: null,
         deactivated: false,
-        individualDebtLimit: 0 
+        debt_limit: 0,
+        activity: {
+          price: {},
+          debt: 0,
+          _id: null
+        }
       },
       confirmationMessage: '',
       pendingAction: null,
@@ -207,13 +209,13 @@ export default {
   },
   computed: {
     totalDebt() {
-      return this.buyers.reduce((sum, buyer) => sum + buyer.debt, 0);
+      return this.buyers.reduce((sum, buyer) => sum + buyer.activity.debt, 0);
     },
     filteredBuyers() {
       const query = this.searchQuery.toLowerCase().trim();
       
       if (!query) {
-        return this.buyers; // Return all buyers if the search query is empty
+        return this.buyers;
       }
 
       return this.buyers.filter(buyer => {
@@ -223,12 +225,12 @@ export default {
         if (this.selectedFilters.includes('phone') && (buyer.phone_num || '').toLowerCase().includes(query)) {
           return true;
         }
-        if (this.selectedFilters.includes('price') && Object.values(buyer.price || {}).some(price => 
+        if (this.selectedFilters.includes('price') && Object.values(buyer.activity.price || {}).some(price => 
           price.toString().includes(query)
         )) {
           return true;
         }
-        if (this.selectedFilters.includes('debt') && buyer.debt.toString().includes(query)) {
+        if (this.selectedFilters.includes('debt') && buyer.activity.debt.toString().includes(query)) {
           return true;
         }
         return false;
@@ -245,38 +247,8 @@ export default {
     },
     async loadBuyers() {
       try {
-        const [buyersResponse, activitiesResponse] = await Promise.all([
-          backAxios.get('/buyer/all'),
-          backAxios.get('/buyer/activity/today/all')
-        ]);
-
-        const buyers = await buyersResponse.data;
-        const activities = await activitiesResponse.data;
-
-        const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-
-        // Merge buyers with their activities
-        this.buyers = buyers.map(buyer => {
-          const activity = activities.find(a => a.buyer === buyer._id);
-
-          let price;
-
-          if (activity.isToday) {
-            // If activity exists and is from today, use its price
-            price = activity.price;
-          } else {
-            // If no activity or activity is not from today, use default prices
-            price = {...this.defaultPrices};
-          }
-
-          return {
-            ...buyer,
-            price: price,
-            debt: activity ? activity.debt : 0,
-            activityId: activity ? activity._id : null,
-            individualDebtLimit: buyer.debt_limit
-          };
-        });
+        const response = await backAxios.get('/buyer/activity/today/all');
+        this.buyers = await response.data;
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -310,7 +282,7 @@ export default {
       }
     },
     confirmUpdateBuyer() {
-      this.confirmationMessage = 'Mijoz ma‘lumotlarini o‘zgartirishni tasdiqlaysizmi?';
+      this.confirmationMessage = 'Mijoz ma\'lumotlarini o\'zgartirishni tasdiqlaysizmi?';
       this.pendingAction = this.updateBuyer;
       this.showConfirmModal = true;
     },
@@ -320,37 +292,28 @@ export default {
           full_name: this.currentBuyer.full_name,
           phone_num: this.currentBuyer.phone_num,
           deactivated: this.currentBuyer.deactivated,
-          debt_limit: this.currentBuyer.individualDebtLimit
+          debt_limit: this.currentBuyer.debt_limit
         });
 
-        if (!buyerResponse.status === 200) {
+        if (buyerResponse.status !== 200) {
           throw new Error('Failed to update buyer information');
         }
 
-        // Fetch today's activity for the buyer
-        const todayActivityResponse = await backAxios.get(`/buyer/activity/today/${this.currentBuyer._id}`);
-
-        if (!todayActivityResponse.status === 200) {
-          throw new Error('Failed to fetch today\'s activity');
-        }
-
-        const todayActivity = await todayActivityResponse.data;
-
-        // Update the activity with new price and debt
         const updatedActivity = {
-          ...todayActivity,
-          price: this.currentBuyer.price,
-          debt: this.currentBuyer.debt
+          price: this.currentBuyer.activity.price,
+          debt: this.currentBuyer.activity.debt
         };
 
-        const activityResponse = await backAxios.put(`/buyer/activity/${todayActivity._id}`, updatedActivity);
+        const todaysActivityResponse = await backAxios.get(`/buyer/activity/today/${this.currentBuyer._id}`, updatedActivity);
 
-        if (!activityResponse.status === 200) {
+        const activityResponse = await backAxios.put(`/buyer/activity/${todaysActivityResponse.data._id}`, updatedActivity);
+
+        if (activityResponse.status !== 200) {
           throw new Error('Failed to update buyer activity');
         }
 
         this.showEditModal = false;
-        await this.loadBuyers(); // Reload the buyers list to reflect the changes
+        await this.loadBuyers();
         alert("Ma'lumotlar muvaffaqiyatli yangilandi");
       } catch (error) {
         console.error('Error updating buyer:', error);
@@ -358,7 +321,7 @@ export default {
       }
     },
     confirmDeleteBuyer(buyer) {
-      if (buyer.debt > 0) {
+      if (buyer.activity.debt > 0) {
         alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
         return;
       }
@@ -368,7 +331,7 @@ export default {
       this.showConfirmModal = true;
     },
     async deleteBuyer() {
-      if (this.currentBuyer.debt > 0) {
+      if (this.currentBuyer.activity.debt > 0) {
         alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
         return;
       }
@@ -403,11 +366,7 @@ export default {
       this.showCreateModal = false;
     },
     async openEditModal(buyer) {
-      this.currentBuyer = { 
-        ...buyer,
-        deactivated: buyer.deactivated,
-        individualDebtLimit: buyer.debt_limit !== undefined ? buyer.debt_limit : this.debtLimit
-      };
+      this.currentBuyer = { ...buyer };
       this.showEditModal = true;
       await this.fetchLastThirtyDaysActivities();
     },
@@ -446,17 +405,15 @@ export default {
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
-        const response = await botAxios.put('/data/debt-limit', this.debtLimit);
+        const response = await botAxios.put('/data/debt-limit', { debtLimit: this.debtLimit });
         if (response.status === 200) {
           console.log('Debt limit updated successfully');
         } else {
           console.error('Failed to update debt limit');
-          // Revert to the previous value if update fails
           await this.fetchDebtLimit();
         }
       } catch (error) {
         console.error('Error updating debt limit:', error);
-        // Revert to the previous value if update fails
         await this.fetchDebtLimit();
       } finally {
         this.updatingDebtLimit = false;
