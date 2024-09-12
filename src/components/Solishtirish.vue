@@ -26,66 +26,71 @@
             <button @click="submitDate">Tasdiqlash</button>
           </div>
         </div>
-
-        <div id="courierList">
-          <div v-if="filteredCouriers.length === 0">No couriers available.</div>
-          <div v-for="courier in filteredCouriers" :key="courier._id" class="courier-item">
-            <h3>{{ courier.full_name }}</h3>
-            <p>{{ courier.phone_num }}</p>
-            <p>{{ courier.car_num || "-" }}</p>
-            
-            <div v-if="courierData[courier._id] || warehouseData[courier._id]" class="comparison-data">
-              <h4>Ma'lumotlar</h4>
-              <div class="data-grid">
-                <div class="data-item">
-                  <h5>Kuryer ma'lumotlari</h5>
-                  <div v-if="courierData[courier._id]">
-                    <h6>Nasechka</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in courierData[courier._id].incision" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+      
+      <div id="courierList">
+        <div v-if="filteredCouriers.length === 0">No couriers available.</div>
+        <div v-for="courier in filteredCouriers" :key="courier._id" class="courier-item">
+          <h3>{{ courier.full_name }}</h3>
+          <p>{{ courier.phone_num }}</p>
+          <p>{{ courier.car_num || "-" }}</p>
+          
+          <div v-if="courierData[courier._id] || warehouseData[courier._id]" class="comparison-data">
+            <div class="data-grid">
+              <div class="data-item">
+                <h4>Kuryer ma'lumotlari</h4>
+                <div v-if="courierData[courier._id]">
+                  <h5>Nasechka</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in courierData[courier._id].incision" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
-                    <h6>Qolgan</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in courierData[courier._id].current_by_courier" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+                  </div>
+                  <h5>Qolgan</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in courierData[courier._id].current_by_courier" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
-                    <h6>Melanj</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in courierData[courier._id].melange_by_courier" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+                  </div>
+                  <h5>Melanj</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in courierData[courier._id].melange_by_courier" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
                   </div>
                 </div>
-                <div class="data-item">
-                  <h5>Ombor ma'lumotlari</h5>
-                  <div v-if="warehouseData[courier._id]">
-                    <h6>Kamomad (Incision)</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in warehouseData[courier._id].incision" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+              </div>
+              <div class="data-item">
+                <h4>Ombor ma'lumotlari</h4>
+                <div v-if="warehouseData[courier._id]">
+                  <h5>Nasechka</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in warehouseData[courier._id].incision" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
-                    <h6>Qolgan (Remained)</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in warehouseData[courier._id].remained" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+                  </div>
+                  <h5>Qolgan</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in warehouseData[courier._id].remained" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
-                    <h6>Melanj (Melange)</h6>
-                    <div class="price-grid">
-                      <div v-for="(value, category) in warehouseData[courier._id].melange" :key="category" class="price-item">
-                        <span class="price-category">{{ category }}:</span>
-                        <span class="price-value">{{ value }}</span>
-                      </div>
+                  </div>
+                  <h5>Melanj</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in warehouseData[courier._id].melange" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
+                    </div>
+                  </div>
+                  <h5>Yuklandi</h5>
+                  <div class="price-grid">
+                    <div v-for="(value, category) in warehouseData[courier._id].eggs" :key="category" class="price-item">
+                      <span class="price-category">{{ category }}:</span>
+                      <span class="price-value">{{ value }}</span>
                     </div>
                   </div>
                 </div>
@@ -95,10 +100,14 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <script>
+import backAxios from '../services/back.axiosConfig';
+import botAxios from '../services/bot.axiosConfig';
+
 export default {
   data() {
     return {
@@ -127,11 +136,8 @@ export default {
   methods: {
     async loadCouriers() {
       try {
-        const response = await fetch(`http://141.98.153.217:16004/courier/all`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-        });
-        this.couriers = await response.json();
+        const response = await backAxios(`/courier/all`);
+        this.couriers = await response.data;
       } catch (error) {
         console.error('Error loading couriers:', error);
       }
@@ -153,17 +159,12 @@ export default {
 
       try {
         const [courierResponse, warehouseResponse] = await Promise.all([
-          fetch(`http://141.98.153.217:16004/courier/activity/by-date/${this.selectedDate}`, {
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-          }),
-          fetch(`http://141.98.153.217:16004/warehouse/activity/by-date/${warehouseDate.toISOString()}`, {
-            headers: { 'Content-Type': 'application/json', 'x-user-website': localStorage.getItem('username') }
-          })
+          backAxios(`/courier/activity/by-date/${this.selectedDate}`),
+          backAxios(`/warehouse/activity/by-date/${warehouseDate.toISOString()}`)
         ]);
 
-        const courierData = await courierResponse.json();
-        console.log(courierData);
-        const warehouseData = await warehouseResponse.json();
+        const courierData = await courierResponse.data;
+        const warehouseData = await warehouseResponse.data;
 
         this.processFetchedData(courierData, warehouseData);
       } catch (error) {
@@ -171,6 +172,11 @@ export default {
       }
 
       this.closeCalendar();
+    },
+    filterNonZeroValues(obj) {
+      return Object.fromEntries(
+        Object.entries(obj).filter(([_, value]) => value !== 0 && value !== '0')
+      );
     },
     processFetchedData(courierData, warehouseData) {
       this.courierData = {};
@@ -180,24 +186,22 @@ export default {
         courierData.forEach(courier => {
           const courierId = courier.courier._id;
           this.courierData[courierId] = {
-            current: courier.current || {},
+            current_by_courier: courier.current_by_courier || {},
+            incision: courier.incision || {},
             melange_by_courier: courier.melange_by_courier || {}
           };
         });
       }
 
-      if (Array.isArray(warehouseData)) {
-        warehouseData.forEach(activity => {
-          if (Array.isArray(activity.distributed_to)) {
-            activity.distributed_to.forEach(distribution => {
-              const courierId = distribution._id;
-              this.warehouseData[courierId] = {
-                incision: distribution.incision || {},
-                remained: distribution.remained || {},
-                melange: distribution.melange || {}
-              };
-            });
-          }
+      if (warehouseData && Array.isArray(warehouseData.distributed_to)) {
+        warehouseData.distributed_to.forEach(distribution => {
+          const courierId = distribution._id;
+          this.warehouseData[courierId] = {
+            eggs: distribution.eggs || {},
+            incision: distribution.incision || {},
+            remained: distribution.remained || {},
+            melange: distribution.melange || {}
+          };
         });
       }
     },
@@ -278,7 +282,8 @@ export default {
   }
   
   .data-item {
-    background-color: #f5f5f5;
+    background-color: #f6f6f6;
+    border: thin solid gray;
     padding: 10px;
     border-radius: 6px;
   }
@@ -286,6 +291,34 @@ export default {
   .data-item h5 {
     margin-top: 0;
     margin-bottom: 10px;
+  }
+
+  .price-grid {
+    display: inline-flex;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .price-item {
+    background-color: #f0f0f0;
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+  }
+
+  .price-category {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #555;
+  }
+
+  .price-value {
+    font-weight: bold;
+    font-size: 1.1em;
   }
   
   pre {
