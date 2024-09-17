@@ -18,6 +18,7 @@
         <div id="courierList">
           <div v-if="filteredCouriers.length === 0">No couriers available.</div>
           <div v-for="courier in filteredCouriers" :key="courier._id">
+            <p>{{ new Date(courier.createdAt).toLocaleDateString("ru-RU") }}</p>
             <p>{{ courier.full_name }}</p>
             <p>{{ courier.phone_num }}</p>
             <p>{{ courier.car_num || "-" }}</p>
@@ -229,7 +230,7 @@ export default {
     border-radius: 6px;
     display: inline-grid;
     gap: 5%;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     justify-content: center;
     align-items: center;
     text-align: center;

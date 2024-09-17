@@ -37,7 +37,8 @@
         />
 
         <div id="buyerList">
-          <div v-for="buyer in filteredBuyers" :key="buyer._id" :class="{'buyer-item': buyer.activity.debt < 0, 'buyer-item debt': buyer.activity.debt > 0}">
+          <div v-for="(buyer, index) in filteredBuyers" :key="buyer._id" :class="{'buyer-item': buyer.activity.debt < 0, 'buyer-item debt': buyer.activity.debt > 0}">
+            <span class="buyer-index">{{ index + 1 }}</span>
             <span class="deactivation-status">{{ buyer.deactivated ? '❌' : '✅' }}</span>
             <p class="buyer-name">{{ buyer.full_name }}</p>
             <p class="buyer-phone">{{ buyer.phone_num }}</p>
@@ -645,13 +646,13 @@ export default {
   }
   
   #buyerList > div {
-    padding: 1% 15%;
+    padding: 1% 15% 1% 10%;
     background-color: #fff;
     border: 1px solid #aaa;
     border-radius: 6px;
     display: inline-grid;
     gap: 5%;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     justify-content: center;
     align-items: center;
     text-align: center;
