@@ -27,30 +27,20 @@ export default {
     // this.checkLogin();
   },
   methods: {
-    setCookie(name, value, days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      const expires = "expires=" + date.toUTCString();
-      document.cookie = `${name}=${value}; ${expires}; path=/`;
+    setCookie() {
+      localStorage.setItem("isLoggedIn", "true")
     },
     getCookie(name) {
-      const nameEQ = name + "=";
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i];
-        while (cookie.charAt(0) === ' ') cookie = cookie.substring(1);
-        if (cookie.indexOf(nameEQ) === 0) return cookie.substring(nameEQ.length);
-      }
-      return null;
+      return name == "true"
     },
     async login() {
       try {
         const response = await loginAxiosInstance.post('/data/login', 
-          { username: this.username }
+          { username: this.username, password: this.password }
         );
         
         if (response.status === 200) {
-          this.setCookie('isLoggedIn', 'true', 1);
+          this.setCookie();
           // localStorage.setItem('username', this.username);
           // localStorage.setItem('authHash', authHash);
           this.$router.push('/tuxum'); // Redirect to another page

@@ -6,39 +6,39 @@ import TuxumNarxi from '../components/TuxumNarxi.vue';
 import Solishtirish from '../components/Solishtirish.vue';
 
 const routes = [
-  // {
-  //   path: '/login',
-  //   name: 'Login',
-  //   component: Login
-  // },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
   {
     path: '/kuryerlar',
     name: 'CourierList',
     component: CourierList,
-    // meta: { requiresAuth: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/mijozlar',
     name: 'Mijozlar',
     component: Mijozlar,
-    // meta: { requiresAuth: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/tuxum',
     name: 'TuxumNarxi',
     component: TuxumNarxi,
-    // meta: { requiresAuth: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/solishtirish',
     name: 'Solishtirish',
     component: Solishtirish,
-    // meta: { requiresAuth: true }
+    meta: { requiresAuth: true }
   },
-  // {
-  //   path: '/:pathMatch(.*)*',
-  //   redirect: '/login'
-  // }
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/login'
+  }
 ];
 
 const router = createRouter({
@@ -48,7 +48,7 @@ const router = createRouter({
 
 // Navigation guard to check authentication
 router.beforeEach((to, from, next) => {
-  const isLoggedIn = document.cookie.split(';').some((item) => item.trim().startsWith('isLoggedIn='));
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // If the route requires authentication
