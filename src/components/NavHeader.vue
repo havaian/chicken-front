@@ -6,6 +6,8 @@
         <router-link to="/mijozlar" :class="{ active: isActive('/mijozlar') }">Mijozlar</router-link>
         <router-link to="/kuryerlar" :class="{ active: isActive('/kuryerlar') }">Kuryerlar</router-link>
         <router-link to="/solishtirish" :class="{ active: isActive('/solishtirish') }">Solishtirish</router-link>
+        <router-link to="/excel-olish" :class="{ active: isActive('/excel-olish') }">Excel Olish</router-link>
+        <router-link to="/excel-yuklash" :class="{ active: isActive('/excel-yuklash') }">Excel Yuklash</router-link>
       </nav>
   
       <header>

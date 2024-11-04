@@ -4,6 +4,8 @@ import CourierList from '../components/CourierList.vue';
 import Mijozlar from '../components/Mijozlar.vue';
 import TuxumNarxi from '../components/TuxumNarxi.vue';
 import Solishtirish from '../components/Solishtirish.vue';
+import ExcelOlish from '../components/ExcelUpload.vue';
+import ExcelYuklash from '../components/ExcelDownload.vue';
 
 const routes = [
   {
@@ -33,6 +35,18 @@ const routes = [
     path: '/solishtirish',
     name: 'Solishtirish',
     component: Solishtirish,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/excel-yuklash',
+    name: 'ExcelOlish',
+    component: ExcelOlish,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/excel-olish',
+    name: 'ExcelYuklash',
+    component: ExcelYuklash,
     meta: { requiresAuth: true }
   },
   {
