@@ -3,8 +3,7 @@
     <div id="content">
       <div class="top-div">
         <h2>Kuryerlar</h2>
-
-        <button @click="openCreateModal">Kuryer Qo‘shish</button>
+        <button @click="openCreateModal">Kuryer Qo'shish</button>
       </div>
 
       <div id="courierListContainer">
@@ -31,8 +30,10 @@
       <!-- Edit Courier Modal -->
       <div v-if="showEditModal" class="modal">
         <div class="modal-content">
-          <span class="close" @click="closeEditModal">&times;</span>
-          <h3>Kuryerni Tahrirlash</h3>
+          <div class="top-div">
+            <h3>Kuryerni Tahrirlash</h3>
+            <span class="close" @click="closeEditModal">&times;</span>
+          </div>
           <input type="hidden" v-model="currentCourier._id" />
           <input v-model="currentCourier.full_name" type="text" placeholder="To‘liq ism" required />
           <input v-model="currentCourier.phone_num" type="text" placeholder="Telefon raqami" required />
@@ -41,12 +42,28 @@
         </div>
       </div>
 
+       <!-- Create Courier Modal -->
+       <div v-if="showCreateModal" class="modal">
+        <div class="modal-content">
+          <div class="top-div">
+            <h3>Yangi Kuryer Qo'shish</h3>
+            <span class="close" @click="closeCreateModal">&times;</span>
+          </div>
+          <input v-model="newCourier.full_name" type="text" placeholder="To'liq ism" required />
+          <input v-model="newCourier.phone_num" type="text" placeholder="Telefon raqami" required />
+          <input v-model="newCourier.car_num" type="text" placeholder="Avtomobil raqami" />
+          <button @click="confirmAddCourier">Kuryerni Qo'shish</button>
+        </div>
+      </div>
+
       <!-- Confirmation Modal -->
       <div v-if="showConfirmModal" class="modal">
         <div class="modal-content">
           <h3>{{ confirmationMessage }}</h3>
-          <button @click="confirmAction">Ha</button>
-          <button @click="cancelAction">Yo‘q</button>
+          <div class="confirmation-buttons">
+            <button @click="confirmAction" class="confirm-button">Ha</button>
+            <button @click="cancelAction" class="cancel-button">Yo'q</button>
+          </div>
         </div>
       </div>
     </div>
@@ -62,6 +79,11 @@ export default {
       couriers: [],
       searchTerm: '',
       showCreateModal: false,
+      newCourier: {
+        full_name: '',
+        phone_num: '',
+        car_num: ''
+      },
       showEditModal: false,
       showConfirmModal: false,
       currentCourier: {
@@ -89,6 +111,51 @@ export default {
     }
   },
   methods: {
+    openCreateModal() {
+      this.showCreateModal = true;
+    },
+
+    closeCreateModal() {
+      this.showCreateModal = false;
+      this.newCourier = { full_name: '', phone_num: '', car_num: '' };
+    },
+    
+    confirmAddCourier() {
+      this.confirmationMessage = 'Yangi kuryer qo\'shishni tasdiqlaysizmi?';
+      this.pendingAction = this.addCourier;
+      this.showConfirmModal = true;
+    },
+
+    async addCourier() {
+      try {
+        const response = await axiosInstance.post('/courier/new/', this.newCourier);
+        
+        if (response.status === 201) {
+          await this.loadCouriers();
+          this.closeCreateModal();
+          alert('Kuryer muvaffaqiyatli qo\'shildi!');
+        } else {
+          alert('Kuryer qo\'shishda xatolik!');
+        }
+      } catch (error) {
+        console.error('Error adding courier:', error);
+        alert('Kuryer qo\'shishda xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.');
+      }
+    },
+
+    confirmAction() {
+      this.showConfirmModal = false;
+      if (this.pendingAction) {
+        this.pendingAction();
+        this.pendingAction = null;
+      }
+    },
+
+    cancelAction() {
+      this.showConfirmModal = false;
+      this.pendingAction = null;
+    },
+
     async loadCouriers() {
       try {
         const response = await axiosInstance.get('/courier/all');
@@ -97,11 +164,13 @@ export default {
         console.error('Error loading couriers:', error);
       }
     },
+
     confirmUpdateCourier() {
       this.confirmationMessage = 'Kuryer ma\'lumotlarini o\'zgartirishni tasdiqlaysizmi?';
       this.pendingAction = this.updateCourier;
       this.showConfirmModal = true;
     },
+
     async updateCourier() {
       try {
         // First, check if the courier has started their day
@@ -132,12 +201,14 @@ export default {
         alert("Tahrirlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       }
     },
+
     confirmDeleteCourier(courier) {
       this.currentCourier = courier;
       this.confirmationMessage = 'Kuryerni o‘chirishni tasdiqlaysizmi?';
       this.pendingAction = this.deleteCourier;
       this.showConfirmModal = true;
     },
+
     async deleteCourier() {
       try {
         const activityResponse = await axiosInstance.get(`/courier/activity/today/${this.currentCourier.phone_num}`);
@@ -159,21 +230,12 @@ export default {
         alert("O'chirishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.");
       }
     },
-    confirmAction() {
-      this.showConfirmModal = false;
-      if (this.pendingAction) {
-        this.pendingAction();
-        this.pendingAction = null;
-      }
-    },
-    cancelAction() {
-      this.showConfirmModal = false;
-      this.pendingAction = null;
-    },
+
     openEditModal(courier) {
       this.currentCourier = { ...courier };
       this.showEditModal = true;
     },
+
     closeEditModal() {
       this.showEditModal = false;
     }
@@ -194,11 +256,18 @@ export default {
   #content h2 {
     color: #000;
   }
-
-  .top-div {
+  
+  #content > .top-div {
     width: 100%;
-    display: inline-flex;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: thin solid lightgrey;
   }
   
   #courierListContainer {
@@ -285,6 +354,13 @@ export default {
     justify-content: center;
     align-items: center;
   }
+
+  .modal .top-div {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
   
   .modal-content {
     background-color: #fff;
@@ -294,10 +370,18 @@ export default {
     max-width: 500px;
     border-radius: 8px;
   }
-
+  
   .modal-content button {
     margin-top: 3%;
     margin-right: 5%;
+    padding: 12px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+    transition: background-color 0.3s;
+    width: 150px;
+    border: none;
   }
 
   .modal-content h3 {
@@ -311,6 +395,22 @@ export default {
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+  }
+
+  .modal-content button:first-of-type {
+    background-color: #28a745;
+  }
+
+  .modal-content button:first-of-type:hover {
+    background-color: #218838;
+  }
+
+  .modal-content button:last-of-type {
+    background-color: #dc3545;
+  }
+
+  .modal-content button:last-of-type:hover {
+    background-color: #c82333;
   }
   
   .close {

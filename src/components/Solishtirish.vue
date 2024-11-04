@@ -27,70 +27,81 @@
           </div>
         </div>
       
-      <div id="courierList">
-        <div v-if="filteredCouriers.length === 0">No couriers available.</div>
-        <div v-for="courier in filteredCouriers" :key="courier._id" class="courier-item">
-          <h3>{{ courier.full_name }}</h3>
-          <p>{{ courier.phone_num }}</p>
-          <p>{{ courier.car_num || "-" }}</p>
-          
-          <div v-if="courierData[courier._id] || warehouseData[courier._id]" class="comparison-data">
-            <div class="data-grid">
-              <div class="data-item">
-                <h4>Kuryer ma'lumotlari</h4>
-                <div v-if="courierData[courier._id]">
-                  <h5>Nasechka</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in courierData[courier._id].incision" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
+        <div id="courierList">
+          <div v-if="filteredCouriers.length === 0">No couriers available.</div>
+          <div v-for="courier in filteredCouriers" :key="courier._id" class="courier-item">
+            <h3>{{ courier.full_name }}</h3>
+            <p>{{ courier.phone_num }}</p>
+            <p>{{ courier.car_num || "-" }}</p>
+            
+            <div class="comparison-data">
+              <div class="data-grid">
+                <div v-if="warehouseData[courier._id]" class="data-item">
+                  <h2>Ombor ma'lumotlari</h2>
+                  <div class="data-item-child" v-for="(distribution, distributionIndex) in warehouseData[courier._id]" :key="distributionIndex">
+                    <h3>Yuklangan vaqt: {{ distribution.time }}</h3>
+                    <div v-if="distribution.incision">
+                      <h5>Nasechka</h5>
+                      <div class="price-grid">
+                        <div v-for="(value, category) in distribution.incision" :key="category" class="price-item">
+                          <span class="price-category">{{ category }}:</span>
+                          <span class="price-value">{{ value }}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <h5>Qolgan</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in courierData[courier._id].current_by_courier" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
+                    <div v-if="distribution.remained">
+                      <h5>Ostatka</h5>
+                      <div class="price-grid">
+                        <div v-for="(value, category) in distribution.remained" :key="category" class="price-item">
+                          <span class="price-category">{{ category }}:</span>
+                          <span class="price-value">{{ value }}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <h5>Melanj</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in courierData[courier._id].melange_by_courier" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
+                    <div v-if="distribution.melange">
+                      <h5>Melanj</h5>
+                      <div class="price-grid">
+                        <div v-for="(value, category) in distribution.melange" :key="category" class="price-item">
+                          <span class="price-category">{{ category }}:</span>
+                          <span class="price-value">{{ value }}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div class="data-item">
-                <h4>Ombor ma'lumotlari</h4>
-                <div v-if="warehouseData[courier._id]">
-                  <h5>Nasechka</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in warehouseData[courier._id].incision" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
-                    </div>
-                  </div>
-                  <h5>Qolgan</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in warehouseData[courier._id].remained" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
-                    </div>
-                  </div>
-                  <h5>Melanj</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in warehouseData[courier._id].melange" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
-                    </div>
-                  </div>
-                  <h5>Yuklandi</h5>
-                  <div class="price-grid">
-                    <div v-for="(value, category) in warehouseData[courier._id].eggs" :key="category" class="price-item">
-                      <span class="price-category">{{ category }}:</span>
-                      <span class="price-value">{{ value }}</span>
+                
+                <div v-if="courierData[courier._id]" class="data-item">
+                  <h2>Kuryer ma'lumotlari</h2>
+                  <div class="data-item-child" v-for="(activity, activityIndex) in courierData[courier._id]" :key="activity._id">
+                    <h3>Yuklanish ma'lumotlari</h3>
+                    <div v-if="activity.accepted_today">
+                        <div v-if="activity.incision">
+                          <h5>Nasechka</h5>
+                          <div class="price-grid">
+                            <div v-for="(value, category) in activity.incision" :key="category" class="price-item">
+                              <span class="price-category">{{ category }}:</span>
+                              <span class="price-value">{{ value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div v-if="activity.current_by_courier">
+                          <h5>Ostatka</h5>
+                          <div class="price-grid">
+                            <div v-for="(value, category) in activity.current_by_courier" :key="category" class="price-item">
+                              <span class="price-category">{{ category }}:</span>
+                              <span class="price-value">{{ value }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div v-if="activity.melange_by_courier">
+                          <h5>Melanj</h5>
+                          <div class="price-grid">
+                            <div v-for="(value, category) in activity.melange_by_courier" :key="category" class="price-item">
+                              <span class="price-category">{{ category }}:</span>
+                              <span class="price-value">{{ value }}</span>
+                            </div>
+                          </div>
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -100,13 +111,12 @@
         </div>
       </div>
     </div>
-    </div>
   </div>
 </template>
 
 <script>
+// The script section remains unchanged
 import backAxios from '../services/back.axiosConfig';
-import botAxios from '../services/bot.axiosConfig';
 
 export default {
   data() {
@@ -142,22 +152,25 @@ export default {
         console.error('Error loading couriers:', error);
       }
     },
+    
     openCalendar() {
       this.showCalendar = true;
     },
+    
     closeCalendar() {
       this.showCalendar = false;
     },
+    
     async submitDate() {
       if (!this.selectedDate) {
         alert('Please select a date');
         return;
       }
 
-      const warehouseDate = new Date(this.selectedDate);
-      warehouseDate.setDate(warehouseDate.getDate() + 1);
-
       try {
+        const warehouseDate = new Date(this.selectedDate); 
+        warehouseDate.setDate(warehouseDate.getDate() + 1);
+
         const [courierResponse, warehouseResponse] = await Promise.all([
           backAxios(`/courier/activity/by-date/${this.selectedDate}`),
           backAxios(`/warehouse/activity/by-date/${warehouseDate.toISOString()}`)
@@ -173,40 +186,41 @@ export default {
 
       this.closeCalendar();
     },
-    filterNonZeroValues(obj) {
-      return Object.fromEntries(
-        Object.entries(obj).filter(([_, value]) => value !== 0 && value !== '0')
-      );
-    },
+    
     processFetchedData(courierData, warehouseData) {
       this.courierData = {};
       this.warehouseData = {};
 
+      // Process courier data
       if (Array.isArray(courierData)) {
-        courierData.forEach(courier => {
-          const courierId = courier.courier._id;
-          this.courierData[courierId] = {
-            current_by_courier: courier.current_by_courier || {},
-            incision: courier.incision || {},
-            melange_by_courier: courier.melange_by_courier || {}
-          };
+        courierData.forEach(activity => {
+          const courierId = activity.courier._id;
+          if (!this.courierData[courierId]) {
+            this.courierData[courierId] = [];
+          }
+          this.courierData[courierId].push(activity);
         });
       }
 
+      // Process warehouse data
       if (warehouseData && Array.isArray(warehouseData.distributed_to)) {
         warehouseData.distributed_to.forEach(distribution => {
           const courierId = distribution._id;
-          this.warehouseData[courierId] = {
-            eggs: distribution.eggs || {},
-            incision: distribution.incision || {},
-            remained: distribution.remained || {},
-            melange: distribution.melange || {}
-          };
+          if (!this.warehouseData[courierId]) {
+            this.warehouseData[courierId] = [];
+          }
+          this.warehouseData[courierId].push(distribution);
         });
       }
     },
+    
     formatDate(dateString) {
       const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      return new Date(dateString).toLocaleDateString('uz-UZ', options);
+    },
+    
+    formatDateTime(dateString) {
+      const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
       return new Date(dateString).toLocaleDateString('uz-UZ', options);
     },
   },
@@ -258,7 +272,7 @@ export default {
   
   .courier-item {
     padding: 15px;
-    background-color: #fff;
+    background-color: #fff !important;
     border: 1px solid #aaa;
     border-radius: 6px;
   }
@@ -282,7 +296,7 @@ export default {
   }
   
   .data-item {
-    background-color: #f6f6f6;
+    background-color: #fff;
     border: thin solid gray;
     padding: 10px;
     border-radius: 6px;
@@ -291,6 +305,10 @@ export default {
   .data-item h5 {
     margin-top: 0;
     margin-bottom: 10px;
+  }
+
+  .data-item-child {
+    padding-top: 5%;
   }
 
   .price-grid {
@@ -374,5 +392,19 @@ export default {
   
   button:hover {
     background-color: #0056b3;
+  }
+
+  .courier-activity h4, .distribution-item h5 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  .data-grid {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
   }
 </style>

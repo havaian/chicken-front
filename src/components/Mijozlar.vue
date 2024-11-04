@@ -69,8 +69,10 @@
       <!-- Create Buyer Modal -->
       <div v-if="showCreateModal" class="modal">
         <div class="modal-content">
-          <span class="close" @click="closeCreateModal">&times;</span>
-          <h3>Yangi Mijoz Yaratish</h3>
+          <div class="top-div">
+            <h3>Yangi Mijoz Yaratish</h3>
+            <span class="close" @click="closeCreateModal">&times;</span>
+          </div>
           <input type="text" v-model="newBuyer.full_name" placeholder="To'liq ism" required />
           <input type="text" v-model="newBuyer.phone_num" placeholder="Telefon raqami" required />
           <button @click="confirmCreateBuyer">Mijozni Yaratish</button>
@@ -80,8 +82,10 @@
       <!-- Edit Buyer Modal -->
       <div v-if="showEditModal" class="modal" @click.self="closeEditModal">
         <div class="modal-content">
-          <span class="close" @click="closeEditModal">&times;</span>
-          <h3>Mijozni Tahrirlash</h3>
+          <div class="top-div">
+            <h3>Mijozni Tahrirlash</h3>
+            <span class="close" @click="closeEditModal">&times;</span>
+          </div>
           <input type="hidden" v-model="currentBuyer._id" />
           <input type="text" v-model="currentBuyer.full_name" placeholder="To'liq ism" required />
           <input type="text" v-model="currentBuyer.phone_num" placeholder="Telefon raqami" required />
@@ -117,7 +121,7 @@
             <h4>So'nggi 30 kunlik faoliyat</h4>
             <table>
               <thead>
-                <tr>
+                <tr class="table-head">
                   <th>Sana</th>
                   <th>Qabul qilingan</th>
                   <th>To'lov</th>
@@ -138,14 +142,16 @@
                       </div>
                     </div>
                   </td>
-                  <td>
-                    <div v-for="accepted in activity.accepted" :key="accepted.payment">
-                      <div>
-                        <span>{{ accepted.payment.toLocaleString() }}</span>
+                  <td class="activity-payment">
+                    <div class="cell-content">
+                      <div v-for="accepted in activity.accepted" :key="accepted.payment">
+                        <div>
+                          <span>{{ accepted.payment.toLocaleString() }}</span>
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td>{{ activity.debt.toLocaleString() }}</td>
+                  <td class="activity-debt">{{ activity.debt.toLocaleString() }}</td>
                 </tr>
               </tbody>
             </table>
@@ -157,8 +163,10 @@
       <div v-if="showConfirmModal" class="modal">
         <div class="modal-content">
           <h3>{{ confirmationMessage }}</h3>
-          <button @click="confirmAction">Ha</button>
-          <button @click="cancelAction">Yo'q</button>
+          <div class="confirmation-buttons">
+            <button @click="confirmAction" class="confirm-button">Ha</button>
+            <button @click="cancelAction" class="cancel-button">Yo'q</button>
+          </div>
         </div>
       </div>
     </div>
@@ -246,6 +254,7 @@ export default {
         .join(', ');
       return `${selectedLabels} bo'yicha qidirish`;
     },
+    
     async loadBuyers() {
       try {
         const response = await backAxios.get('/buyer/activity/today/all');
@@ -254,6 +263,7 @@ export default {
         console.error('Error loading data:', error);
       }
     },
+    
     async loadDefaultPrices() {
       try {
         const response = await botAxios.get('/data/prices');
@@ -262,11 +272,13 @@ export default {
         console.error('Error loading default prices:', error);
       }
     },
+    
     confirmCreateBuyer() {
       this.confirmationMessage = 'Yangi mijoz yaratishni tasdiqlaysizmi?';
       this.pendingAction = this.createBuyer;
       this.showConfirmModal = true;
     },
+    
     async createBuyer() {
       try {
         const response = await backAxios.post('/buyer/new', this.newBuyer);
@@ -282,11 +294,13 @@ export default {
         console.error('Error creating buyer:', error);
       }
     },
+    
     confirmUpdateBuyer() {
       this.confirmationMessage = 'Mijoz ma\'lumotlarini o\'zgartirishni tasdiqlaysizmi?';
       this.pendingAction = this.updateBuyer;
       this.showConfirmModal = true;
     },
+    
     async updateBuyer() {
       try {
         const buyerResponse = await backAxios.put(`/buyer/${this.currentBuyer._id}`, {
@@ -321,6 +335,7 @@ export default {
         alert('Tahrirlashda xatolik: ' + error.message);
       }
     },
+    
     confirmDeleteBuyer(buyer) {
       if (buyer.activity.debt > 0) {
         alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
@@ -331,6 +346,7 @@ export default {
       this.pendingAction = this.deleteBuyer;
       this.showConfirmModal = true;
     },
+    
     async deleteBuyer() {
       if (this.currentBuyer.activity.debt > 0) {
         alert("Bu mijozni o'chirib bo'lmaydi, chunki ularning faol qarzi bor.");
@@ -349,6 +365,7 @@ export default {
         console.error('Error deleting buyer:', error);
       }
     },
+    
     confirmAction() {
       this.showConfirmModal = false;
       if (this.pendingAction) {
@@ -356,21 +373,26 @@ export default {
         this.pendingAction = null;
       }
     },
+    
     cancelAction() {
       this.showConfirmModal = false;
       this.pendingAction = null;
     },
+    
     openCreateModal() {
       this.showCreateModal = true;
     },
+    
     closeCreateModal() {
       this.showCreateModal = false;
     },
+    
     async openEditModal(buyer) {
       this.currentBuyer = { ...buyer };
       this.showEditModal = true;
       await this.fetchLastThirtyDaysActivities();
     },
+    
     async fetchLastThirtyDaysActivities() {
       try {
         const response = await backAxios.get(`/buyer/activity/last30days/${this.currentBuyer._id}`);
@@ -383,13 +405,16 @@ export default {
         console.error('Error fetching last 30 days activities:', error);
       }
     },
+    
     formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleDateString('uz-UZ', { year: 'numeric', month: '2-digit', day: '2-digit' });
     },
+    
     closeEditModal() {
       this.showEditModal = false;
     },
+    
     async fetchDebtLimit() {
       try {
         const response = await botAxios.get('/data/debt-limit');
@@ -403,6 +428,7 @@ export default {
         console.error('Error fetching debt limit:', error);
       }
     },
+    
     async updateDebtLimit() {
       this.updatingDebtLimit = true;
       try {
@@ -421,6 +447,7 @@ export default {
       }
     },
   },
+  
   async mounted() {
     await this.loadDefaultPrices();
     await this.loadBuyers();
@@ -434,23 +461,24 @@ export default {
     margin-left: 240px;
     padding: 20px;
     color: #000;
+    position: relative;
   }
 
   #content h2 {
     color: #000;
   }
 
-  .top-div {
-    width: 100%;
-    display: inline-flex;
-    justify-content: space-between;
-  }
-
-  .top-div {
+  #content > .top-div {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: #fff;
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: thin solid lightgrey;
   }
 
   .debt-info {
@@ -464,7 +492,6 @@ export default {
   .negative-debt { color: #dc3545; font-weight: 700; }
   
   #buyerListContainer {
-    margin: 3% 0;
     display: grid;
     width: 100%;
     gap: 12px;
@@ -484,6 +511,7 @@ export default {
     grid-template-columns: repeat(1, 1fr);
     gap: 12px;
   }
+
   .buyer-item {
     background-color: #fff;
     border: 1px solid #ddd;
@@ -606,7 +634,6 @@ export default {
     color: #aaa;
     position: sticky;
     top: 0;
-    right: 10px;
     font-size: 28px;
     font-weight: bold;
     cursor: pointer;
@@ -691,6 +718,14 @@ export default {
     justify-content: center;
     align-items: center;
   }
+
+  .modal .top-div {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
   
   .modal-content {
     background-color: #fff;
@@ -701,9 +736,22 @@ export default {
     border-radius: 8px;
   }
 
-  .modal-content button {
-    margin-top: 3%;
-    margin-right: 5%;
+  .confirmation-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .confirm-button, .cancel-button {
+    padding: 12px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+    transition: background-color 0.3s;
+    width: 150px;
+    border: none;
   }
 
   .modal-content h3 {
@@ -717,6 +765,22 @@ export default {
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+  }
+
+  .modal-content button:first-of-type {
+    background-color: #28a745;
+  }
+
+  .modal-content button:first-of-type:hover {
+    background-color: #218838;
+  }
+
+  .modal-content button:last-of-type {
+    background-color: #dc3545;
+  }
+
+  .modal-content button:last-of-type:hover {
+    background-color: #c82333;
   }
 
   .filter-options {
@@ -742,18 +806,69 @@ export default {
     width: 100%;
     border-collapse: collapse;
   }
-
   .activities-table th, .activities-table td {
-    padding: 8px;
     text-align: left;
+    border: thin solid lightgrey
   }
 
   .activities-table th {
+    padding: 8px;
+    text-align: left;
+    border: thin solid lightgrey
+  }
+
+  .activities-table td > div {
+    padding: 8px;
+    border-bottom: thin solid lightgrey
+  }
+
+  .activities-table td > div:last-child {
+    border-bottom: thin solid transparent;  
+  }
+
+  .activities-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background-color: #f2f2f2;
+    border: thin solid lightgrey
+  }
+
+  .activities-table tr {
+    border: thin solid lightgrey
   }
 
   .activities-table tr:nth-child(even) {
     background-color: #f9f9f9;
+  }
+
+  .activities-table .activity-payment {
+    position: relative;
+    height: 100%;
+    width: 5.5vw;
+    padding: 0 !important;
+  }
+
+  .activities-table .activity-payment > .cell-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 8px;
+  }
+
+  .activities-table .activity-payment > .cell-content > div {
+    width: 100%;
+    text-align: center;
+  }
+
+  .activities-table .activity-debt {
+    width: 4vw;
+    text-align: center;
   }
 
   .deactivation-status {
