@@ -18,9 +18,6 @@
 # # use a more specific COPY, as this will include files like `Dockerfile`, we don't really need inside our containers.
 # COPY . ./
 
-# FROM builder as dev
-# CMD ["npm", "run", "dev"]
-
 # FROM builder as prod-builder
 # RUN npm run build
 

@@ -2,8 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '../components/Login.vue';
 import CourierList from '../components/CourierList.vue';
 import Mijozlar from '../components/Mijozlar.vue';
-import TuxumNarxi from '../components/TuxumNarxi.vue';
+import Maxsulotlar from '../components/Maxsulotlar.vue';
 import Solishtirish from '../components/Solishtirish.vue';
+import ExcelUpload from '../components/ExcelUpload.vue';
+import ExcelDownload from '../components/ExcelDownload.vue';
 
 const routes = [
   {
@@ -12,27 +14,39 @@ const routes = [
     component: Login
   },
   {
-    path: '/kuryerlar',
+    path: '/couriers',
     name: 'CourierList',
     component: CourierList,
     meta: { requiresAuth: true }
   },
   {
-    path: '/mijozlar',
+    path: '/clients',
     name: 'Mijozlar',
     component: Mijozlar,
     meta: { requiresAuth: true }
   },
   {
-    path: '/tuxum',
-    name: 'TuxumNarxi',
-    component: TuxumNarxi,
+    path: '/inventory',
+    name: 'Maxsulotlar',
+    component: Maxsulotlar,
     meta: { requiresAuth: true }
   },
   {
-    path: '/solishtirish',
+    path: '/courier-check',
     name: 'Solishtirish',
     component: Solishtirish,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/excel-upload',
+    name: 'ExcelUpload',
+    component: ExcelUpload,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/excel-download',
+    name: 'ExcelDownload',
+    component: ExcelDownload,
     meta: { requiresAuth: true }
   },
   {

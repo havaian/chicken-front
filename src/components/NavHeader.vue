@@ -2,10 +2,12 @@
 <template>
     <div class="nav">
       <nav>
-        <router-link to="/tuxum" :class="{ active: isActive('/tuxum') }">Tuxum narxi</router-link>
-        <router-link to="/mijozlar" :class="{ active: isActive('/mijozlar') }">Mijozlar</router-link>
-        <router-link to="/kuryerlar" :class="{ active: isActive('/kuryerlar') }">Kuryerlar</router-link>
-        <router-link to="/solishtirish" :class="{ active: isActive('/solishtirish') }">Solishtirish</router-link>
+        <router-link to="/inventory" :class="{ active: isActive('/inventory') }">Maxsulotlar</router-link>
+        <router-link to="/clients" :class="{ active: isActive('/clients') }">Mijozlar</router-link>
+        <router-link to="/couriers" :class="{ active: isActive('/couriers') }">Kuryerlar</router-link>
+        <router-link to="/courier-check" :class="{ active: isActive('/courier-check') }">Solishtirish</router-link>
+        <router-link to="/excel-download" :class="{ active: isActive('/excel-download') }">Excel Olish</router-link>
+        <router-link to="/excel-upload" :class="{ active: isActive('/excel-upload') }">Excel Yuklash</router-link>
       </nav>
   
       <header>
@@ -34,7 +36,6 @@ export default {
     const logout = () => {
       console.log('User logged out');
       localStorage.removeItem('username');
-      document.cookie = 'isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       router.push('/login');
     };
 

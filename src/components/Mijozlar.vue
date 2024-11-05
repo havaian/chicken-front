@@ -207,7 +207,7 @@ export default {
       filterOptions: [
         { value: 'name', label: 'Ism' },
         { value: 'phone', label: 'Telefon raqami' },
-        { value: 'price', label: 'Tuxum narxi' },
+        { value: 'price', label: 'Maxsulot narxi' },
         { value: 'debt', label: 'Qarz' }
       ],
       selectedFilters: ['name', 'phone'],
