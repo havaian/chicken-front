@@ -30,9 +30,11 @@ export default {
     setCookie() {
       localStorage.setItem("isLoggedIn", "true")
     },
+
     getCookie(name) {
       return name == "true"
     },
+
     async login() {
       try {
         const response = await loginAxiosInstance.post('/data/login', 
@@ -43,7 +45,7 @@ export default {
           this.setCookie();
           // localStorage.setItem('username', this.username);
           // localStorage.setItem('authHash', authHash);
-          this.$router.push('/tuxum'); // Redirect to another page
+          this.$router.push('/inventory'); // Redirect to another page
         } else {
           this.error = true;
           this.errorMessage = 'Invalid username or password';
@@ -54,6 +56,7 @@ export default {
         this.errorMessage = 'Error logging in. Please try again later.';
       }
     },
+
     checkLogin() {
       // const isLoggedIn = this.getCookie('isLoggedIn');
       // const storedUsername = localStorage.getItem('username');

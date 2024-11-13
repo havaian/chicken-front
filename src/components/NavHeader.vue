@@ -36,7 +36,6 @@ export default {
     const logout = () => {
       console.log('User logged out');
       localStorage.removeItem('username');
-      document.cookie = 'isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       router.push('/login');
     };
 
