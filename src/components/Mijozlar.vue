@@ -134,10 +134,10 @@
                   <td>
                     <div v-for="accepted in activity.accepted" :key="accepted.time">
                       <div class="price-grid">
-                        <div v-for="egg in accepted.eggs" :key="egg.category" class="price-item edit-modal">
-                          <span class="price-category edit-modal">{{ egg.category }}</span>
-                          <span class="price-value edit-modal">{{ egg.amount }}</span>
-                          <span class="egg-price edit-modal">({{ egg.price }})</span>
+                        <div v-for="item in accepted.items" :key="item.category" class="price-item edit-modal">
+                          <span class="price-category edit-modal">{{ item.category }}</span>
+                          <span class="price-value edit-modal">{{ item.amount }}</span>
+                          <span class="item-price edit-modal">({{ item.price }})</span>
                         </div>
                       </div>
                     </div>
@@ -562,7 +562,7 @@ export default {
     font-weight: normal;
   }
 
-  .egg-price {
+  .item-price {
     font-size: 0.8em;
     color: #555;
   }
